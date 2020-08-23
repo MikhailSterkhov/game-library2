@@ -32,7 +32,6 @@ public class LibraryCoreProperty {
         }
     }
 
-
     public String getProperty(String propertyKey) {
         hasPropertyReadable();
 
