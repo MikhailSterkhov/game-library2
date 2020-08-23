@@ -155,7 +155,7 @@ public final class BeanManager {
                     if (value.startsWith("${")) {
                         String propertyKey = value.substring(2, value.length() - 1);
 
-                        for (LibraryCoreProperty coreProperty : GameLibrary.getInstance().getLibraryCore().getCoreConfiguration().getCorePropertyMap().values()) {
+                        for (LibraryCoreProperty coreProperty : GameLibrary.getInstance().getLibraryCore().getPropertyManager().getCorePropertyMap().values()) {
                             String propertyValue = coreProperty.getProperty(propertyKey);
 
                             if (propertyValue == null) {

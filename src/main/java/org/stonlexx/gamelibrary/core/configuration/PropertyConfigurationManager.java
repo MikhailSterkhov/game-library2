@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Getter
-public final class LibraryCoreConfiguration {
+public final class PropertyConfigurationManager {
 
     private final Map<String, LibraryCoreProperty> corePropertyMap = new HashMap<>();
 

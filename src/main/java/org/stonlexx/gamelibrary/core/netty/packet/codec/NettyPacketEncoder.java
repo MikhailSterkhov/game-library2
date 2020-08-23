@@ -2,6 +2,7 @@ package org.stonlexx.gamelibrary.core.netty.packet.codec;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.NonNull;
@@ -12,12 +13,16 @@ import org.stonlexx.gamelibrary.core.netty.packet.NettyPacketHandleData;
 import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
 import org.stonlexx.gamelibrary.utility.JsonUtil;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
 import java.util.Map;
 
-public abstract class NettyPacketEncoder<NP extends NettyPacket>
-        extends MessageToByteEncoder<NP> {
+public abstract class NettyPacketEncoder
+        extends MessageToByteEncoder<NettyPacket> {
 
 
     /**
@@ -31,17 +36,19 @@ public abstract class NettyPacketEncoder<NP extends NettyPacket>
     public abstract void encode(@NonNull Channel channel,
                                 @NonNull NettyPacketBuffer nettyPacketBuffer,
 
-                                @NonNull NP nettyPacket, int nettyPacketId)
+                                @NonNull NettyPacket nettyPacket, int nettyPacketId)
             throws IOException;
 
     @Override
-    protected void encode(ChannelHandlerContext channelHandlerContext, NP nettyPacket, ByteBuf byteBuf) throws Exception {
+    protected void encode(ChannelHandlerContext channelHandlerContext, NettyPacket nettyPacket, ByteBuf byteBuf) throws Exception {
         Channel channel = channelHandlerContext.channel();
 
         NettyManager nettyManager = GameLibrary.getInstance().getLibraryCore().getNettyManager();
         NettyPacketBuffer nettyPacketBuffer = new NettyPacketBuffer(byteBuf);
 
         int nettyPacketId = nettyManager.getNettyPacketId(nettyManager.getPacketCodecManager().getEncodePacketDirection(), nettyPacket.getClass());
+
+        nettyPacketBuffer.writeVarInt(nettyPacketId);
 
         encode(channel, nettyPacketBuffer, nettyPacket, nettyPacketId);
     }
@@ -69,7 +76,7 @@ public abstract class NettyPacketEncoder<NP extends NettyPacket>
             nettyPacketBuffer.writeString(handleDataName);
             nettyPacketBuffer.writeString(JsonUtil.toJson(handleDataValueObject));
 
-            nettyPacketBuffer.writeString(handleDataValueObject.getClass().getSimpleName());
+            nettyPacketBuffer.writeString(handleDataValueObject.getClass().getName());
         });
 
         nettyPacketBuffer.writeBoolean(false);

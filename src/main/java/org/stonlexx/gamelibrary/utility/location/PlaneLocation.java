@@ -5,11 +5,13 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @ToString
-public class PlaneLocation implements Cloneable {
+public class PlaneLocation implements Cloneable, Serializable {
 
     private double x, y;
 

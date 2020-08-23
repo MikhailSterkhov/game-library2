@@ -13,6 +13,9 @@ import org.stonlexx.gamelibrary.GameLibrary;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.codec.NettyPacketDecoder;
 import org.stonlexx.gamelibrary.core.netty.packet.codec.NettyPacketEncoder;
+import org.stonlexx.gamelibrary.core.netty.packet.codec.frame.FrameVarIntDecoder;
+import org.stonlexx.gamelibrary.core.netty.packet.codec.frame.FrameVarIntEncoder;
+import org.stonlexx.gamelibrary.core.netty.packet.handler.NettyPacketHandler;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -40,6 +43,8 @@ public final class NettyBootstrap {
         Bootstrap bootstrap = new Bootstrap()
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
 
+                .remoteAddress(socketAddress)
+
                 .channel(NioSocketChannel.class)
                 .group(GameLibrary.getInstance().getEventExecutors());
 
@@ -50,7 +55,6 @@ public final class NettyBootstrap {
                 NettyBootstrapChannelAttribute<?> channelAttribute = ((NettyBootstrapChannelAttribute<?>) attributeObject);
 
                 bootstrap.attr(AttributeKey.newInstance(channelAttribute.getAttributeName()), channelAttribute.getAttributeObject());
-
                 continue;
             }
 
@@ -68,7 +72,7 @@ public final class NettyBootstrap {
         // bind bootstrap, add listener & sync
         try {
 
-            ChannelFuture channelFuture = bootstrap.connect(socketAddress).sync();
+            ChannelFuture channelFuture = bootstrap.connect();
 
             if (futureListener != null) {
                 channelFuture.addListener(futureListener);
@@ -78,7 +82,7 @@ public final class NettyBootstrap {
         }
 
         // if you`re даун then returns null
-        catch (InterruptedException exception) {
+        catch (Exception exception) {
             exception.printStackTrace();
         }
 
@@ -103,11 +107,20 @@ public final class NettyBootstrap {
         ServerBootstrap serverBootstrap = new ServerBootstrap()
                 .option(ChannelOption.SO_REUSEADDR, true)
 
+                .localAddress(socketAddress)
+
                 .channel(NioServerSocketChannel.class)
                 .group(GameLibrary.getInstance().getEventExecutors());
 
         // add attributes to handler
         for (Object attributeObject : attributes) {
+
+            if (attributeObject instanceof NettyBootstrapChannelAttribute) {
+                NettyBootstrapChannelAttribute<?> channelAttribute = ((NettyBootstrapChannelAttribute<?>) attributeObject);
+
+                serverBootstrap.childAttr(AttributeKey.newInstance(channelAttribute.getAttributeName()), channelAttribute.getAttributeObject());
+                continue;
+            }
 
             String attributeName = attributeObject.getClass().getSimpleName();
             attributeName = String.valueOf(attributeName.charAt(0)).toLowerCase() + attributeName.substring(1);
@@ -123,7 +136,7 @@ public final class NettyBootstrap {
         // bind bootstrap, add listener & sync
         try {
 
-            ChannelFuture channelFuture = serverBootstrap.bind(socketAddress).sync();
+            ChannelFuture channelFuture = serverBootstrap.bind().sync();
 
             if (futureListener != null) {
                 channelFuture.addListener(futureListener);
@@ -166,7 +179,7 @@ public final class NettyBootstrap {
      *
      * @param channelConsumer - ответ, который возвращает канал
      */
-    public ChannelInitializer<SocketChannel> createChannelInitializer(@NonNull Consumer<SocketChannel> channelConsumer) {
+    public ChannelInitializer<SocketChannel> createChannelInitializer(Consumer<SocketChannel> channelConsumer) {
         return createChannelInitializer(channelConsumer, null, null);
     }
 
@@ -178,10 +191,10 @@ public final class NettyBootstrap {
      * @param nettyPacketDecoder - кодек, принимающий байты
      * @param nettyPacketEncoder - кодек, отправляющий байты
      */
-    public ChannelInitializer<SocketChannel> createChannelInitializer(@NonNull Consumer<SocketChannel> channelConsumer,
+    public ChannelInitializer<SocketChannel> createChannelInitializer(Consumer<SocketChannel> channelConsumer,
 
-                                                                      NettyPacketDecoder<? extends NettyPacket> nettyPacketDecoder,
-                                                                      NettyPacketEncoder<? extends NettyPacket> nettyPacketEncoder) {
+                                                                      NettyPacketDecoder nettyPacketDecoder,
+                                                                      NettyPacketEncoder nettyPacketEncoder) {
         return new ChannelInitializer<SocketChannel>() {
 
             @Override
@@ -196,9 +209,19 @@ public final class NettyBootstrap {
 
                 socketChannel.config().setAllocator(PooledByteBufAllocator.DEFAULT);
 
+                socketChannel.pipeline().addLast("frame-decoder", new FrameVarIntDecoder());
+                socketChannel.pipeline().addLast("frame-encoder", new FrameVarIntEncoder());
+
+                socketChannel.pipeline().addLast("netty-packet-handler", new NettyPacketHandler());
+
                 // add codecs
-                if (nettyPacketEncoder != null) socketChannel.pipeline().addLast("packet-encoder", nettyPacketEncoder);
-                if (nettyPacketDecoder != null) socketChannel.pipeline().addLast("packet-decoder", nettyPacketDecoder);
+                if (nettyPacketDecoder != null) {
+                    socketChannel.pipeline().addBefore("frame-decoder", "packet-decoder", nettyPacketDecoder);
+                }
+
+                if (nettyPacketEncoder != null) {
+                    socketChannel.pipeline().addBefore("frame-encoder", "packet-encoder", nettyPacketEncoder);
+                }
 
 
                 // accept socket channel to consumer

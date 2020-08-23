@@ -5,11 +5,13 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serializable;
+
 @AllArgsConstructor
 @Getter
 @Setter
 @ToString
-public class HeadLocation implements Cloneable {
+public class HeadLocation implements Cloneable, Serializable {
 
     private float yaw, pitch;
 

@@ -1,29 +1,34 @@
-package org.stonlexx.test;
+package org.stonlexx.test.netty;
 
 import io.netty.channel.Channel;
+import org.stonlexx.gamelibrary.GameLibrary;
 import org.stonlexx.gamelibrary.core.netty.packet.AbstractNettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
 import org.stonlexx.gamelibrary.utility.location.PointLocation;
-import org.stonlexx.test.bean.TestPlayer;
 
 public class TestPacket extends AbstractNettyPacket {
 
     @Override
     public void writePacket(NettyPacketBuffer packetBuffer) {
         packetBuffer.writeString("tEst l1ne");
+
+        packetHandleData.addHandleData("location", new PointLocation(2.1, 2.2, 8));
     }
 
     @Override
     public void readPacket(NettyPacketBuffer packetBuffer) {
-        packetBuffer.readString(); // Response: "tEst l1ne"
+        String testLine = packetBuffer.readString();
+
+        GameLibrary.getInstance().getLogger().info("Packet response: " + testLine);
     }
 
     @Override
     public void handle(Channel channel) {
-        // u can get any packet data value
 
+        // u can get any packet data value
         PointLocation pointLocation = packetHandleData.getHandleDataObject(PointLocation.class, "location");
-        TestPlayer testPlayer = packetHandleData.getHandleDataObject(TestPlayer.class, "player");
+
+        GameLibrary.getInstance().getLogger().info(pointLocation.toString());
     }
 
 }

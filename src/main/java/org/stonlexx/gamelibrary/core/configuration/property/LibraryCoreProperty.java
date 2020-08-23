@@ -3,16 +3,13 @@ package org.stonlexx.gamelibrary.core.configuration.property;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 import java.util.Objects;
 import java.util.Properties;
 
 @RequiredArgsConstructor
 @Getter
-public class LibraryCoreProperty {
+public class LibraryCoreProperty implements Serializable {
 
     //private final OutputStream propertyWriter;
     private final Reader propertyReader;

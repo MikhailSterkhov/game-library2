@@ -2,6 +2,7 @@ package org.stonlexx.gamelibrary.core.netty.packet.codec;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.NonNull;
@@ -13,10 +14,12 @@ import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketTyping;
 import org.stonlexx.gamelibrary.utility.JsonUtil;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.List;
 
-public abstract class NettyPacketDecoder<NP extends NettyPacket>
+public abstract class NettyPacketDecoder
         extends ByteToMessageDecoder {
 
     /**
@@ -30,7 +33,7 @@ public abstract class NettyPacketDecoder<NP extends NettyPacket>
     public abstract void decode(@NonNull Channel channel,
                                 @NonNull NettyPacketBuffer nettyPacketBuffer,
 
-                                @NonNull NP nettyPacket, int nettyPacketId)
+                                @NonNull NettyPacket nettyPacket, int nettyPacketId)
             throws IOException;
 
     @Override
@@ -42,12 +45,12 @@ public abstract class NettyPacketDecoder<NP extends NettyPacket>
 
         NettyPacketBuffer nettyPacketBuffer = new NettyPacketBuffer(byteBuf);
 
-        int nettyPacketId = nettyPacketBuffer.readInt();
+        int nettyPacketId = nettyPacketBuffer.readVarInt();
 
         NettyPacket nettyPacket = nettyPacketTyping.getNettyPacket(nettyManager.getPacketCodecManager().getDecodePacketDirection(), nettyPacketId);
 
-        decode(channel, nettyPacketBuffer, ((NP) nettyPacket), nettyPacketId);
-        handleList.add(nettyPacketId);
+        decode(channel, nettyPacketBuffer, nettyPacket, nettyPacketId);
+        handleList.add(nettyPacket);
     }
 
     /**
@@ -63,11 +66,11 @@ public abstract class NettyPacketDecoder<NP extends NettyPacket>
 
         while (nettyPacketBuffer.readBoolean()) {
             String handleDataName = nettyPacketBuffer.readString();
-            String handleDataValue = nettyPacketBuffer.readString();
+            String handleDataJson = nettyPacketBuffer.readString();
 
             String objectClassName = nettyPacketBuffer.readString();
 
-            nettyPacketHandleData.addHandleData(handleDataName, JsonUtil.fromJson(handleDataValue, Class.forName(objectClassName)));
+            nettyPacketHandleData.addHandleData(handleDataName, JsonUtil.fromJson(handleDataJson, Class.forName(objectClassName)));
         }
 
         return nettyPacketHandleData;

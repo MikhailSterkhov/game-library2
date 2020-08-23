@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.util.ByteProcessor;
 import lombok.RequiredArgsConstructor;
-import org.stonlexx.gamelibrary.core.netty.packet.NettyPacketException;
+import org.stonlexx.gamelibrary.core.netty.exception.NettyException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,7 +27,7 @@ public class NettyPacketBuffer extends ByteBuf {
 
     public void writeString(String string) {
         if (string.length() > Short.MAX_VALUE) {
-            throw new NettyPacketException(String.format("Cannot send string longer than Short.MAX_VALUE (got %s characters)", string.length()));
+            throw new NettyException(String.format("Cannot send string longer than Short.MAX_VALUE (got %s characters)", string.length()));
         }
 
         byte[] bytes = string.getBytes(StandardCharsets.UTF_8);
@@ -40,7 +40,7 @@ public class NettyPacketBuffer extends ByteBuf {
         int len = readVarInt();
 
         if (len > Short.MAX_VALUE) {
-            throw new NettyPacketException(String.format("Cannot receive string longer than Short.MAX_VALUE (got %s characters)", len));
+            throw new NettyException(String.format("Cannot receive string longer than Short.MAX_VALUE (got %s characters)", len));
         }
 
         byte[] bytes = new byte[len];
@@ -52,7 +52,7 @@ public class NettyPacketBuffer extends ByteBuf {
 
     public void writeArray(byte[] bytes) {
         if (bytes.length > Short.MAX_VALUE) {
-            throw new NettyPacketException(String.format("Cannot send byte array longer than Short.MAX_VALUE (got %s bytes)", bytes.length));
+            throw new NettyException(String.format("Cannot send byte array longer than Short.MAX_VALUE (got %s bytes)", bytes.length));
         }
 
         writeVarInt(bytes.length);
@@ -74,7 +74,7 @@ public class NettyPacketBuffer extends ByteBuf {
         int len = readVarInt();
 
         if (len > limit) {
-            throw new NettyPacketException(String.format("Cannot receive byte array longer than %s (got %s bytes)", limit, len));
+            throw new NettyException(String.format("Cannot receive byte array longer than %s (got %s bytes)", limit, len));
         }
 
         byte[] ret = new byte[len];

@@ -3,9 +3,11 @@ package org.stonlexx.gamelibrary.core.bean;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.io.Serializable;
+
 @Getter
 @RequiredArgsConstructor
-public class BeanObject<T> {
+public class BeanObject<T> implements Serializable {
 
     private final T beanObject;
 

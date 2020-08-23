@@ -5,17 +5,22 @@ import com.google.common.collect.HashBiMap;
 import lombok.Getter;
 import lombok.NonNull;
 import org.stonlexx.gamelibrary.GameLibrary;
+import org.stonlexx.gamelibrary.core.netty.exception.NettyException;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
 
 import java.lang.invoke.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.EnumMap;
 
 public final class NettyPacketMapper {
 
     @Getter
-    private final Map<NettyPacketDirection, BiMap<Integer, Class<? extends NettyPacket>>> packetMap = new HashMap<>();
+    private final EnumMap<NettyPacketDirection, BiMap<Class<? extends NettyPacket>, Integer>> packetMap
+            = new EnumMap<NettyPacketDirection, BiMap<Class<? extends NettyPacket>, Integer>>(NettyPacketDirection.class) {{
+
+        put(NettyPacketDirection.TO_CLIENT, HashBiMap.create());
+        put(NettyPacketDirection.TO_SERVER, HashBiMap.create());
+    }};
 
 
     /**
@@ -30,10 +35,7 @@ public final class NettyPacketMapper {
 
                                int nettyPacketId) {
 
-        BiMap<Integer, Class<? extends NettyPacket>> packetBiMap = packetMap.getOrDefault(nettyPacketDirection, HashBiMap.create());
-        packetBiMap.put(nettyPacketId, nettyPacketClass);
-
-        packetMap.put(nettyPacketDirection, packetBiMap);
+        packetMap.get(nettyPacketDirection).put(nettyPacketClass, nettyPacketId);
     }
 
     /**
@@ -43,24 +45,15 @@ public final class NettyPacketMapper {
      * @param nettyPacketId - номер получаемого пакета
      */
     public NettyPacket getNettyPacket(@NonNull NettyPacketDirection nettyPacketDirection, int nettyPacketId) {
-        Class<? extends NettyPacket> packetClass = packetMap.getOrDefault(nettyPacketDirection, HashBiMap.create()).get(nettyPacketId);
+        Class<? extends NettyPacket> packetClass = packetMap.get(nettyPacketDirection).inverse().get(nettyPacketId);
 
         if (packetClass == null) {
-            throw new NullPointerException(String.format("Packet(%s) is not registered", nettyPacketId));
+            throw new NettyException(String.format("NettyPacket(id:%s) is not registered", nettyPacketId));
         }
 
         try {
 
-            MethodType methodType = MethodType.methodType(Object.class);
-            MethodType constructorType = MethodType.methodType(Void.TYPE);
-
-            MethodHandles.Lookup publicLookup = GameLibrary.getInstance().getLibraryCore().getPublicLookup();
-            MethodHandle methodHandle = publicLookup.findConstructor(packetClass, constructorType);
-
-            CallSite callSite = LambdaMetafactory.metafactory(publicLookup,
-                    "get", methodType, constructorType, methodHandle, MethodType.methodType(packetClass));
-
-            return (NettyPacket) callSite.getTarget().invoke();
+            return packetClass.getConstructor().newInstance();
         }
 
         catch (Throwable exception) {
@@ -78,7 +71,7 @@ public final class NettyPacketMapper {
      * @param nettyPacketClass - класс пакета
      */
     public boolean hasNettyPacket(NettyPacketDirection nettyPacketDirection, Class<? extends NettyPacket> nettyPacketClass) {
-        return packetMap.get(nettyPacketDirection).containsValue(nettyPacketClass);
+        return packetMap.get(nettyPacketDirection).containsKey(nettyPacketClass);
     }
 
     /**
@@ -89,7 +82,7 @@ public final class NettyPacketMapper {
      * @param nettyPacketId - номер пакета
      */
     public boolean hasNettyPacketById(NettyPacketDirection nettyPacketDirection, int nettyPacketId) {
-        return packetMap.get(nettyPacketDirection).containsKey(nettyPacketId);
+        return packetMap.get(nettyPacketDirection).containsValue(nettyPacketId);
     }
 
 }

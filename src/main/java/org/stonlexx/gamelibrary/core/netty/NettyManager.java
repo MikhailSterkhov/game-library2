@@ -130,8 +130,7 @@ public final class NettyManager {
 
         NettyPacketMapper nettyPacketMapper = nettyPacketTyping.getPacketMapper();
 
-        return nettyPacketMapper.getPacketMap().get(nettyPacketDirection)
-                .inverse().get(nettyPacketClass);
+        return nettyPacketMapper.getPacketMap().get(nettyPacketDirection).get(nettyPacketClass);
     }
 
 }
