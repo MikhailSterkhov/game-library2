@@ -54,9 +54,7 @@ public final class NettyPacketMapper {
             MethodType methodType = MethodType.methodType(Object.class);
             MethodType constructorType = MethodType.methodType(Void.TYPE);
 
-            MethodHandles.Lookup publicLookup = GameLibrary.getInstance().getLibraryCore()
-                    .getCoreConfiguration().getPublicLookup();
-
+            MethodHandles.Lookup publicLookup = GameLibrary.getInstance().getLibraryCore().getPublicLookup();
             MethodHandle methodHandle = publicLookup.findConstructor(packetClass, constructorType);
 
             CallSite callSite = LambdaMetafactory.metafactory(publicLookup,

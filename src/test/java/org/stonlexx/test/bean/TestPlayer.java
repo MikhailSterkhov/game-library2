@@ -7,19 +7,8 @@ import org.stonlexx.gamelibrary.core.bean.*;
 @Bean
 public class TestPlayer {
 
-    //@BeanQualifier("testObject")
-    private final ITestObject testObject;
-
-    public TestPlayer() {
-        this.testObject = new TestObject();
-        this.testObject.setString("123");
-    }
-
-    @QualifierConstructor
-    public TestPlayer(@BeanQualifier("testObject") ITestObject testObject) {
-        this.testObject = testObject;
-    }
-
+    @BeanQualifier("testObject")
+    private ITestObject testObject;
 
     @InitMethod
     public void initialize() {

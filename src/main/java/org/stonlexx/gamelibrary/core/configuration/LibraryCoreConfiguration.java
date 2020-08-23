@@ -4,8 +4,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import org.stonlexx.gamelibrary.core.configuration.property.LibraryCoreProperty;
 
-import java.io.*;
-import java.lang.invoke.MethodHandles;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
@@ -16,9 +16,6 @@ import java.util.Map;
 public final class LibraryCoreConfiguration {
 
     private final Map<String, LibraryCoreProperty> corePropertyMap = new HashMap<>();
-    private final ConfigurationApplicationContext applicationContext = new ConfigurationApplicationContext();
-
-    private final MethodHandles.Lookup publicLookup = MethodHandles.publicLookup();
 
 
     /**

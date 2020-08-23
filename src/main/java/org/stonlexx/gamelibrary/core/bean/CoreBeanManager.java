@@ -1,4 +1,4 @@
-package org.stonlexx.gamelibrary.core.configuration;
+package org.stonlexx.gamelibrary.core.bean;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -9,20 +9,17 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 import org.stonlexx.gamelibrary.GameLibrary;
-import org.stonlexx.gamelibrary.core.bean.QualifierConstructor;
-import org.stonlexx.gamelibrary.core.bean.*;
 import org.stonlexx.gamelibrary.core.bean.exception.BeanException;
 import org.stonlexx.gamelibrary.core.configuration.property.LibraryCoreProperty;
 
 import java.lang.annotation.Annotation;
-import java.lang.invoke.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
-public class ConfigurationApplicationContext {
+public class CoreBeanManager {
 
     @Getter
     private final Map<String, BeanObject<?>> beanMap = new HashMap<>();
