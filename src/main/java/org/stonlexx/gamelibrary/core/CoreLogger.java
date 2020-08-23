@@ -13,9 +13,8 @@ import java.util.logging.Logger;
 
 public class CoreLogger extends Logger {
 
-    private ConsoleReader consoleReader;
-
-    private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
+    protected ConsoleReader consoleReader;
+    protected final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
 
 
     public CoreLogger() {
@@ -55,9 +54,13 @@ public class CoreLogger extends Logger {
                     .append(ConsoleReader.RESET_LINE);
         }
 
+        writeLine(formatted.toString() + Ansi.ansi().reset().toString());
+    }
+
+    protected void writeLine(String line) {
         try {
 
-            consoleReader.print(formatted.toString() + Ansi.ansi().reset().toString());
+            consoleReader.print(line);
 
             consoleReader.drawLine();
             consoleReader.flush();

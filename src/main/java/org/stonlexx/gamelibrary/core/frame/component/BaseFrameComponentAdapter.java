@@ -6,12 +6,11 @@ import lombok.RequiredArgsConstructor;
 import org.stonlexx.gamelibrary.core.BaseUpdater;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 @Getter
-public abstract class BaseFrameComponentAdapter<SC extends Component> implements BaseFrameComponent {
+public abstract class BaseFrameComponentAdapter<SC extends JComponent> implements BaseFrameComponent {
 
 
     protected final JPanel swingPanel                                                     = new JPanel();

@@ -12,7 +12,6 @@ public class DateUtil {
 
     static {
         TimeZone timeZone = TimeZone.getTimeZone("Europe/Moscow");
-
         TimeZone.setDefault( timeZone );
     }
 

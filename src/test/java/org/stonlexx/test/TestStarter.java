@@ -1,42 +1,24 @@
 package org.stonlexx.test;
 
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.socket.SocketChannel;
 import org.stonlexx.gamelibrary.GameLibrary;
-import org.stonlexx.gamelibrary.core.GameLibraryCore;
-import org.stonlexx.gamelibrary.core.netty.CoreNettyBootstrap;
-
-import java.net.SocketAddress;
+import org.stonlexx.gamelibrary.core.configuration.ConfigurationApplicationContext;
+import org.stonlexx.gamelibrary.core.configuration.LibraryCoreConfiguration;
+import org.stonlexx.test.bean.TestPlayer;
 
 public class TestStarter {
 
-    public static void main(String[] args) throws Exception {
-        //LibraryCoreConfiguration coreConfiguration = GameLibrary.INSTANCE.getLibraryCore().getCoreConfiguration();
-        //ConfigurationApplicationContext applicationContext = coreConfiguration.getApplicationContext();
-        //
-        //TestPlayer testPlayer = applicationContext.getBean("testPlayer", TestPlayer.class);
-        //testPlayer.test();
-        //
-        //applicationContext.destroy();
+    public static void main(String[] args) {
+        GameLibrary.getInstance().setLogger(new TestLogger());
 
-        GameLibraryCore gameLibraryCore = GameLibrary.getInstance().getLibraryCore();
-        CoreNettyBootstrap nettyBootstrap = gameLibraryCore.getNettyManager().getNettyBootstrap();
+        LibraryCoreConfiguration coreConfiguration = GameLibrary.getInstance().getLibraryCore().getCoreConfiguration();
+        coreConfiguration.addPropertyConfiguration(TestStarter.class.getClassLoader(), "test.properties");
 
-        SocketAddress socketAddress = nettyBootstrap.createSocketAddress("localhost", 1010);
+        ConfigurationApplicationContext applicationContext = coreConfiguration.getApplicationContext();
+        applicationContext.scanPackages("org.stonlexx.test");
 
-        ChannelInitializer<SocketChannel> channelInitializer = nettyBootstrap.createChannelInitializer(null);
-        ChannelFutureListener channelFutureListener = nettyBootstrap.createFutureListener((channelFuture, isSuccess) -> {
+        TestPlayer testPlayer = applicationContext.getBean("testPlayer", TestPlayer.class);
 
-            if (isSuccess) {
-                GameLibrary.getInstance().getLogger().info("Channel " + channelFuture.channel().remoteAddress() + " was success connected!");
-                return;
-            }
-
-            GameLibrary.getInstance().getLogger().info("Channel " + channelFuture.channel().remoteAddress() + " has failed to connect!");
-        });
-
-        nettyBootstrap.createServerBootstrap(socketAddress, channelFutureListener, channelInitializer);
+        applicationContext.destroy();
     }
 
 }

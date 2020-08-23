@@ -4,9 +4,11 @@ import lombok.Getter;
 import lombok.NonNull;
 import org.stonlexx.gamelibrary.core.configuration.property.LibraryCoreProperty;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.lang.invoke.MethodHandles;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,6 +17,8 @@ public final class LibraryCoreConfiguration {
 
     private final Map<String, LibraryCoreProperty> corePropertyMap = new HashMap<>();
     private final ConfigurationApplicationContext applicationContext = new ConfigurationApplicationContext();
+
+    private final MethodHandles.Lookup publicLookup = MethodHandles.publicLookup();
 
 
     /**
@@ -26,7 +30,7 @@ public final class LibraryCoreConfiguration {
     public void addPropertyConfiguration(@NonNull ClassLoader classLoader,
                                          @NonNull String resourceName) {
 
-        addPropertyConfiguration(classLoader.getResourceAsStream(resourceName), resourceName);
+        addPropertyConfiguration(classLoader.getResource(resourceName), resourceName);
     }
 
     /**
@@ -35,15 +39,22 @@ public final class LibraryCoreConfiguration {
      * @param resourceStream - хранилище данных ресурса
      * @param resourceName - имя получаемого ресурса
      */
-    public void addPropertyConfiguration(@NonNull InputStream resourceStream,
+    public void addPropertyConfiguration(@NonNull URL resourceStream,
                                          @NonNull String resourceName) {
 
-        InputStreamReader inputStreamReader = new InputStreamReader(resourceStream);
-        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+        try {
+            URLConnection urlConnection = resourceStream.openConnection();
 
-        LibraryCoreProperty coreProperty = new LibraryCoreProperty(bufferedReader);
+            InputStreamReader inputStreamReader = new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
-        corePropertyMap.put(resourceName.toLowerCase(), coreProperty);
+            LibraryCoreProperty coreProperty = new LibraryCoreProperty(bufferedReader);
+            corePropertyMap.put(resourceName.toLowerCase(), coreProperty);
+        }
+
+        catch (Exception exception) {
+            exception.printStackTrace();
+        }
     }
 
     /**

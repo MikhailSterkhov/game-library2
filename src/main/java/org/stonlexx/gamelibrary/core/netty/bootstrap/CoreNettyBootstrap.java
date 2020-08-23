@@ -1,4 +1,4 @@
-package org.stonlexx.gamelibrary.core.netty;
+package org.stonlexx.gamelibrary.core.netty.bootstrap;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
@@ -11,6 +11,7 @@ import io.netty.util.AttributeKey;
 import lombok.NonNull;
 import org.stonlexx.gamelibrary.GameLibrary;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.function.BiConsumer;
@@ -29,8 +30,8 @@ public final class CoreNettyBootstrap {
      * @param attributes - атрибуты для канала
      */
     public Bootstrap createClientBootstrap(@NonNull SocketAddress socketAddress,
-                                           @NonNull ChannelFutureListener futureListener,
-                                           @NonNull ChannelInitializer<SocketChannel> channelInitializer,
+                                           ChannelFutureListener futureListener,
+                                           ChannelInitializer<SocketChannel> channelInitializer,
 
                                            @NonNull Object... attributes) {
 
@@ -42,6 +43,14 @@ public final class CoreNettyBootstrap {
 
         // add attributes to handler
         for (Object attributeObject : attributes) {
+
+            if (attributeObject instanceof BootstrapChannelAttribute) {
+                BootstrapChannelAttribute<?> channelAttribute = ((BootstrapChannelAttribute<?>) attributeObject);
+
+                bootstrap.attr(AttributeKey.newInstance(channelAttribute.getAttributeName()), channelAttribute.getAttributeObject());
+
+                continue;
+            }
 
             String attributeName = attributeObject.getClass().getSimpleName();
             attributeName = String.valueOf(attributeName.charAt(0)).toLowerCase() + attributeName.substring(1);
@@ -84,8 +93,8 @@ public final class CoreNettyBootstrap {
      * @param attributes - атрибуты для канала
      */
     public ServerBootstrap createServerBootstrap(@NonNull SocketAddress socketAddress,
-                                                 @NonNull ChannelFutureListener futureListener,
-                                                 @NonNull ChannelInitializer<SocketChannel> channelInitializer,
+                                                 ChannelFutureListener futureListener,
+                                                 ChannelInitializer<SocketChannel> channelInitializer,
 
                                                  @NonNull Object... attributes) {
 
@@ -147,7 +156,7 @@ public final class CoreNettyBootstrap {
      * @param addressPort - порт адреса
      */
     public SocketAddress createSocketAddress(String addressHost, int addressPort) {
-        return InetSocketAddress.createUnresolved(addressHost, addressPort);
+        return new InetSocketAddress(addressHost, addressPort);
     }
 
     /**

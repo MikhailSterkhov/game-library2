@@ -4,7 +4,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Reader;
+import java.io.Writer;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -12,7 +14,9 @@ import java.util.Properties;
 @Getter
 public class LibraryCoreProperty {
 
+    //private final OutputStream propertyWriter;
     private final Reader propertyReader;
+
     private final Properties properties = new Properties();
 
 
@@ -23,7 +27,6 @@ public class LibraryCoreProperty {
 
         try {
             Objects.requireNonNull(propertyReader, "property reader equals null");
-
             properties.load(propertyReader);
         }
 
@@ -48,6 +51,7 @@ public class LibraryCoreProperty {
         hasPropertyReadable();
 
         properties.setProperty(propertyKey, propertyValue);
+        //properties.save(propertyWriter, null);
     }
 
 }

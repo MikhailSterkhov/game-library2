@@ -4,6 +4,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import lombok.Getter;
 import lombok.NonNull;
+import org.stonlexx.gamelibrary.GameLibrary;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
 
@@ -11,13 +12,10 @@ import java.lang.invoke.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class NettyPacketMapper {
+public final class NettyPacketMapper {
 
     @Getter
     private final Map<NettyPacketDirection, BiMap<Integer, Class<? extends NettyPacket>>> packetMap = new HashMap<>();
-
-    @Getter
-    private final MethodHandles.Lookup lookup = MethodHandles.publicLookup();
 
 
     /**
@@ -56,9 +54,12 @@ public class NettyPacketMapper {
             MethodType methodType = MethodType.methodType(Object.class);
             MethodType constructorType = MethodType.methodType(Void.TYPE);
 
-            MethodHandle methodHandle = lookup.findConstructor(packetClass, constructorType);
+            MethodHandles.Lookup publicLookup = GameLibrary.getInstance().getLibraryCore()
+                    .getCoreConfiguration().getPublicLookup();
 
-            CallSite callSite = LambdaMetafactory.metafactory(lookup,
+            MethodHandle methodHandle = publicLookup.findConstructor(packetClass, constructorType);
+
+            CallSite callSite = LambdaMetafactory.metafactory(publicLookup,
                     "get", methodType, constructorType, methodHandle, MethodType.methodType(packetClass));
 
             return (NettyPacket) callSite.getTarget().invoke();

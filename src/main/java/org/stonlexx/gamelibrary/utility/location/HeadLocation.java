@@ -1,4 +1,4 @@
-package org.stonlexx.gamelibrary.location;
+package org.stonlexx.gamelibrary.utility.location;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

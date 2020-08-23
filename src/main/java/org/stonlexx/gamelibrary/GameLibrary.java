@@ -24,4 +24,5 @@ public final class GameLibrary {
 
     @Setter
     private CoreLogger logger                                                           = new CoreLogger();
+
 }

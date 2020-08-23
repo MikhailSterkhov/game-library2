@@ -2,6 +2,7 @@ package org.stonlexx.gamelibrary.core.netty;
 
 import lombok.Getter;
 import lombok.NonNull;
+import org.stonlexx.gamelibrary.core.netty.bootstrap.CoreNettyBootstrap;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketTyping;

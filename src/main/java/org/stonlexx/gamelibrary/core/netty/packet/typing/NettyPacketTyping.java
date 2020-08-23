@@ -12,6 +12,7 @@ import java.util.Map;
 public class NettyPacketTyping {
 
     private final String typingName;
+
     private final NettyPacketMapper packetMapper = new NettyPacketMapper();
 
 

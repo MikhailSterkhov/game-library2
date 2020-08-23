@@ -1,4 +1,4 @@
-package org.stonlexx.gamelibrary.utility;
+package org.stonlexx.gamelibrary.utility.query;
 
 import lombok.experimental.UtilityClass;
 
