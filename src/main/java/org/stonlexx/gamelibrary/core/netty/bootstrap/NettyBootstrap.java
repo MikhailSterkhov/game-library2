@@ -10,14 +10,16 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
 import lombok.NonNull;
 import org.stonlexx.gamelibrary.GameLibrary;
+import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
+import org.stonlexx.gamelibrary.core.netty.packet.codec.NettyPacketDecoder;
+import org.stonlexx.gamelibrary.core.netty.packet.codec.NettyPacketEncoder;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public final class CoreNettyBootstrap {
+public final class NettyBootstrap {
 
 
     /**
@@ -44,8 +46,8 @@ public final class CoreNettyBootstrap {
         // add attributes to handler
         for (Object attributeObject : attributes) {
 
-            if (attributeObject instanceof BootstrapChannelAttribute) {
-                BootstrapChannelAttribute<?> channelAttribute = ((BootstrapChannelAttribute<?>) attributeObject);
+            if (attributeObject instanceof NettyBootstrapChannelAttribute) {
+                NettyBootstrapChannelAttribute<?> channelAttribute = ((NettyBootstrapChannelAttribute<?>) attributeObject);
 
                 bootstrap.attr(AttributeKey.newInstance(channelAttribute.getAttributeName()), channelAttribute.getAttributeObject());
 
@@ -164,7 +166,22 @@ public final class CoreNettyBootstrap {
      *
      * @param channelConsumer - ответ, который возвращает канал
      */
-    public ChannelInitializer<SocketChannel> createChannelInitializer(Consumer<SocketChannel> channelConsumer) {
+    public ChannelInitializer<SocketChannel> createChannelInitializer(@NonNull Consumer<SocketChannel> channelConsumer) {
+        return createChannelInitializer(channelConsumer, null, null);
+    }
+
+    /**
+     * Создать инициализатор канала для подключения
+     *
+     * @param channelConsumer - ответ, который возвращает канал
+     *
+     * @param nettyPacketDecoder - кодек, принимающий байты
+     * @param nettyPacketEncoder - кодек, отправляющий байты
+     */
+    public ChannelInitializer<SocketChannel> createChannelInitializer(@NonNull Consumer<SocketChannel> channelConsumer,
+
+                                                                      NettyPacketDecoder<? extends NettyPacket> nettyPacketDecoder,
+                                                                      NettyPacketEncoder<? extends NettyPacket> nettyPacketEncoder) {
         return new ChannelInitializer<SocketChannel>() {
 
             @Override
@@ -178,6 +195,11 @@ public final class CoreNettyBootstrap {
                 }
 
                 socketChannel.config().setAllocator(PooledByteBufAllocator.DEFAULT);
+
+                // add codecs
+                if (nettyPacketEncoder != null) socketChannel.pipeline().addLast("packet-encoder", nettyPacketEncoder);
+                if (nettyPacketDecoder != null) socketChannel.pipeline().addLast("packet-decoder", nettyPacketDecoder);
+
 
                 // accept socket channel to consumer
                 if (channelConsumer == null) {

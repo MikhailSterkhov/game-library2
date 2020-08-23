@@ -4,15 +4,17 @@ import io.netty.channel.Channel;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.stonlexx.gamelibrary.GameLibrary;
 import org.stonlexx.gamelibrary.core.event.impl.PacketHandleEvent;
 import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
 public abstract class AbstractNettyPacket implements NettyPacket {
 
-    @Getter
-    protected final PacketHandleData packetHandleData = PacketHandleData.create();
+    @Setter
+    protected NettyPacketHandleData packetHandleData = NettyPacketHandleData.create();
 
 
     @Override

@@ -1,13 +1,16 @@
 package org.stonlexx.gamelibrary.core.netty.packet;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PacketHandleData {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class NettyPacketHandleData {
 
     @Getter
     private final Map<String, WeakReference<?>> handleDataMap = new HashMap<>();
@@ -19,13 +22,11 @@ public class PacketHandleData {
      * Создать хранилище пакетных данных
      * для его обработки
      */
-    public static PacketHandleData create() {
-        return new PacketHandleData();
+    public static NettyPacketHandleData create() {
+        return new NettyPacketHandleData();
     }
 
 // ==================================== // FACTORY // ==================================== //
-
-    private PacketHandleData() { }
 
 
     /**
@@ -52,6 +53,18 @@ public class PacketHandleData {
                                      @NonNull String handleDataName) {
 
         return getHandleDataValue(objectType, handleDataName).get();
+    }
+
+    /**
+     * Добавить данные в хранилище
+     *
+     * @param handleDataName - имя данных
+     * @param handleDataValue - значение данных
+     */
+    public <V> void addHandleData(@NonNull String handleDataName,
+                                  @NonNull V handleDataValue) {
+
+        handleDataMap.put(handleDataName.toLowerCase(), new WeakReference<>(handleDataValue));
     }
 
 }

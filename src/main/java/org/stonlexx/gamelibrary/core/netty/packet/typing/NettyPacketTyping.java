@@ -18,6 +18,7 @@ public class NettyPacketTyping {
 
 // ================================================================================================================== //
 
+    @Getter
     private static final Map<String, NettyPacketTyping> packetTypingMap = new HashMap<>();
 
     public static NettyPacketTyping getPacketTyping(String typingName) {

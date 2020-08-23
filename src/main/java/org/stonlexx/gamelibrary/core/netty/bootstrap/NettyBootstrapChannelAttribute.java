@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-public class BootstrapChannelAttribute<T> {
+public class NettyBootstrapChannelAttribute<T> {
 
     private final String attributeName;
     private final T attributeObject;
@@ -20,9 +20,9 @@ public class BootstrapChannelAttribute<T> {
      * @param attributeName - имя атрибута
      * @param attributeObject - объект атрибута
      */
-    public static <T> BootstrapChannelAttribute<T> create(@NonNull String attributeName,
-                                                          @NonNull T attributeObject) {
+    public static <T> NettyBootstrapChannelAttribute<T> create(@NonNull String attributeName,
+                                                               @NonNull T attributeObject) {
 
-        return new BootstrapChannelAttribute<>(attributeName, attributeObject);
+        return new NettyBootstrapChannelAttribute<>(attributeName, attributeObject);
     }
 }

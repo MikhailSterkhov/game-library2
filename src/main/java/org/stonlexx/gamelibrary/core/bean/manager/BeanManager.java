@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
-public final class CoreBeanManager {
+public final class BeanManager {
 
     @Getter
     private final Map<String, BeanObject<?>> beanMap = new HashMap<>();
@@ -262,7 +262,13 @@ public final class CoreBeanManager {
     public <T> T getBean(@NonNull String beanName,
                          @NonNull Class<T> beanType) {
 
-        return (T) getBean(beanName).getBeanObject();
+        BeanObject<T> beanObject = (BeanObject<T>) getBean(beanName);
+
+        if (beanObject == null) {
+            return null;
+        }
+
+        return beanObject.getBeanObject();
     }
 
     /**

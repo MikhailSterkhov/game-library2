@@ -16,7 +16,7 @@ public interface BaseUpdater<E> extends Consumer<E> {
      * @param period - период обновления
      */
     default void startTask(@NonNull E element,
-                   @NonNull TimeUnit timeUnit, long period) {
+                           @NonNull TimeUnit timeUnit, long period) {
 
         GameLibrary.getInstance().getEventExecutors()
                 .scheduleWithFixedDelay(() -> accept(element), 0, period, timeUnit);

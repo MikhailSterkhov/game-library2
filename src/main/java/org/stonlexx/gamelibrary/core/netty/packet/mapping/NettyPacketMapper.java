@@ -23,15 +23,15 @@ public final class NettyPacketMapper {
      *
      * @param nettyPacketDirection - директория пакета
      * @param nettyPacketClass - класс регистрируемого пакета
-     * @param packetId - номер пакета для регистрации
+     * @param nettyPacketId - номер пакета для регистрации
      */
     public void registerPacket(@NonNull NettyPacketDirection nettyPacketDirection,
                                @NonNull Class<? extends NettyPacket> nettyPacketClass,
 
-                               int packetId) {
+                               int nettyPacketId) {
 
         BiMap<Integer, Class<? extends NettyPacket>> packetBiMap = packetMap.getOrDefault(nettyPacketDirection, HashBiMap.create());
-        packetBiMap.put(packetId, nettyPacketClass);
+        packetBiMap.put(nettyPacketId, nettyPacketClass);
 
         packetMap.put(nettyPacketDirection, packetBiMap);
     }
@@ -40,13 +40,13 @@ public final class NettyPacketMapper {
      * Получить зарегистрированный пакет по его номеру
      *
      * @param nettyPacketDirection - директория пакета
-     * @param packetId - номер получаемого пакета
+     * @param nettyPacketId - номер получаемого пакета
      */
-    public NettyPacket getNettyPacket(@NonNull NettyPacketDirection nettyPacketDirection, int packetId) {
-        Class<? extends NettyPacket> packetClass = packetMap.getOrDefault(nettyPacketDirection, HashBiMap.create()).get(packetId);
+    public NettyPacket getNettyPacket(@NonNull NettyPacketDirection nettyPacketDirection, int nettyPacketId) {
+        Class<? extends NettyPacket> packetClass = packetMap.getOrDefault(nettyPacketDirection, HashBiMap.create()).get(nettyPacketId);
 
         if (packetClass == null) {
-            throw new NullPointerException(String.format("Packet(%s) is not registered", packetId));
+            throw new NullPointerException(String.format("Packet(%s) is not registered", nettyPacketId));
         }
 
         try {
@@ -68,6 +68,28 @@ public final class NettyPacketMapper {
         }
 
         return null;
+    }
+
+    /**
+     * Вернуть булевое выражение, говорящее
+     * о том, зарегистрирован ли указанный
+     * класс пакета
+     *
+     * @param nettyPacketClass - класс пакета
+     */
+    public boolean hasNettyPacket(NettyPacketDirection nettyPacketDirection, Class<? extends NettyPacket> nettyPacketClass) {
+        return packetMap.get(nettyPacketDirection).containsValue(nettyPacketClass);
+    }
+
+    /**
+     * Вернуть булевое выражение, говорящее
+     * о том, зарегистрирован ли указанный
+     * номер пакета
+     *
+     * @param nettyPacketId - номер пакета
+     */
+    public boolean hasNettyPacketById(NettyPacketDirection nettyPacketDirection, int nettyPacketId) {
+        return packetMap.get(nettyPacketDirection).containsKey(nettyPacketId);
     }
 
 }
