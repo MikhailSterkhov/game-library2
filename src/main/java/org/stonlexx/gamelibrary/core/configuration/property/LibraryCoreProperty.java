@@ -17,6 +17,10 @@ public class LibraryCoreProperty {
 
 
     public void hasPropertyReadable() {
+        if (!properties.isEmpty()) {
+            return;
+        }
+
         try {
             Objects.requireNonNull(propertyReader, "property reader equals null");
 
