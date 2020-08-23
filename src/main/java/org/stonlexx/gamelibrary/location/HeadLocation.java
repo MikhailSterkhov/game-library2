@@ -21,15 +21,15 @@ public class HeadLocation implements Cloneable {
     }
 
     public HeadLocation add(HeadLocation headLocation) {
-        return add( headLocation.yaw, headLocation.pitch );
+        return add(headLocation.yaw, headLocation.pitch);
     }
 
     public HeadLocation subtract(float yaw, float pitch) {
-        return add( -yaw, -pitch );
+        return add(-yaw, -pitch);
     }
 
     public HeadLocation subtract(HeadLocation headLocation) {
-        return add( -headLocation.yaw, -headLocation.pitch );
+        return add(-headLocation.yaw, -headLocation.pitch);
     }
 
     @Override

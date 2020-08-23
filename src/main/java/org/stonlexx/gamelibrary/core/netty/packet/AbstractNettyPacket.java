@@ -15,9 +15,14 @@ public abstract class AbstractNettyPacket implements NettyPacket {
     protected final PacketHandleData packetHandleData = PacketHandleData.create();
 
 
-    @Override public abstract void writePacket(NettyPacketBuffer packetBuffer);
-    @Override public abstract void readPacket(NettyPacketBuffer packetBuffer);
-    @Override public abstract void handle(Channel channel);
+    @Override
+    public abstract void writePacket(NettyPacketBuffer packetBuffer);
+
+    @Override
+    public abstract void readPacket(NettyPacketBuffer packetBuffer);
+
+    @Override
+    public abstract void handle(Channel channel);
 
 
     /**
@@ -26,7 +31,7 @@ public abstract class AbstractNettyPacket implements NettyPacket {
      * @param channel - канал, с которого пришел пакет
      */
     protected void handleEvent(Channel channel) {
-        GameLibrary.getInstance().getEventManager().callEvent(new PacketHandleEvent(channel, this));
+        GameLibrary.getInstance().getLibraryCore().getEventManager().callEvent(new PacketHandleEvent(channel, this));
     }
 
 }

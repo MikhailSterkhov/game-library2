@@ -23,6 +23,7 @@ public class NettyPacketMapper {
     /**
      * Зарегистрировать пакет в маппере
      *
+     * @param nettyPacketDirection - директория пакета
      * @param nettyPacketClass - класс регистрируемого пакета
      * @param packetId - номер пакета для регистрации
      */
@@ -40,6 +41,7 @@ public class NettyPacketMapper {
     /**
      * Получить зарегистрированный пакет по его номеру
      *
+     * @param nettyPacketDirection - директория пакета
      * @param packetId - номер получаемого пакета
      */
     public NettyPacket getNettyPacket(@NonNull NettyPacketDirection nettyPacketDirection, int packetId) {

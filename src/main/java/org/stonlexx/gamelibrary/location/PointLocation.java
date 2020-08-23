@@ -23,15 +23,15 @@ public class PointLocation implements Cloneable {
     }
 
     public PointLocation add(PointLocation pointLocation) {
-        return add( pointLocation.x, pointLocation.y, pointLocation.z );
+        return add(pointLocation.x, pointLocation.y, pointLocation.z);
     }
 
     public PointLocation subtract(double x, double y, double z) {
-        return add( -x, -y, -z );
+        return add(-x, -y, -z);
     }
 
     public PointLocation subtract(PointLocation pointLocation) {
-        return add( -pointLocation.x, -pointLocation.y, -pointLocation.z );
+        return add(-pointLocation.x, -pointLocation.y, -pointLocation.z);
     }
 
     @Override
