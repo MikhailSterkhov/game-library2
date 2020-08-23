@@ -1,7 +1,7 @@
 package org.stonlexx.test;
 
 import org.stonlexx.gamelibrary.GameLibrary;
-import org.stonlexx.gamelibrary.core.bean.CoreBeanManager;
+import org.stonlexx.gamelibrary.core.bean.manager.CoreBeanManager;
 import org.stonlexx.gamelibrary.core.configuration.LibraryCoreConfiguration;
 import org.stonlexx.test.bean.TestPlayer;
 

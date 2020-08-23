@@ -1,7 +1,7 @@
 package org.stonlexx.gamelibrary.core;
 
 import lombok.Getter;
-import org.stonlexx.gamelibrary.core.bean.CoreBeanManager;
+import org.stonlexx.gamelibrary.core.bean.manager.CoreBeanManager;
 import org.stonlexx.gamelibrary.core.configuration.LibraryCoreConfiguration;
 import org.stonlexx.gamelibrary.core.event.EventManager;
 import org.stonlexx.gamelibrary.core.netty.CoreNettyManager;
