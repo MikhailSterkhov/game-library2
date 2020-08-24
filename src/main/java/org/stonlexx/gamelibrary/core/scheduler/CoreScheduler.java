@@ -17,14 +17,14 @@ public abstract class CoreScheduler implements Runnable {
      * Отмена и закрытие потока
      */
     public void cancel() {
-        GameLibrary.getInstance().getLibraryCore().getSchedulerManager().cancelScheduler(identifier);
+        GameLibrary.getInstance().getSchedulerManager().cancelScheduler(identifier);
     }
 
     /**
      * Запустить асинхронный поток
      */
     public void runAsync() {
-        GameLibrary.getInstance().getLibraryCore().getSchedulerManager().runAsync(this);
+        GameLibrary.getInstance().getSchedulerManager().runAsync(this);
     }
 
     /**
@@ -35,7 +35,7 @@ public abstract class CoreScheduler implements Runnable {
      * @param timeUnit - единица времени
      */
     public void runLater(long delay, TimeUnit timeUnit) {
-        GameLibrary.getInstance().getLibraryCore().getSchedulerManager().runLater(identifier, this, delay, timeUnit);
+        GameLibrary.getInstance().getSchedulerManager().runLater(identifier, this, delay, timeUnit);
     }
 
     /**
@@ -47,7 +47,7 @@ public abstract class CoreScheduler implements Runnable {
      * @param timeUnit - единица времени
      */
     public void runTimer(long delay, long period, TimeUnit timeUnit) {
-        GameLibrary.getInstance().getLibraryCore().getSchedulerManager().runTimer(identifier, this, delay, period, timeUnit);
+        GameLibrary.getInstance().getSchedulerManager().runTimer(identifier, this, delay, period, timeUnit);
     }
 
 }

@@ -1,4 +1,4 @@
-package org.stonlexx.test.netty.starter;
+package org.stonlexx.test.netty;
 
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
@@ -12,17 +12,14 @@ import org.stonlexx.gamelibrary.core.netty.packet.codec.impl.StandardNettyPacket
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketTyping;
 import org.stonlexx.test.bean.TestPlayer;
-import org.stonlexx.test.netty.TestPacket;
 
 import java.net.SocketAddress;
 
 public class ServerStarter {
 
     public static void main(String[] args) {
-        NettyManager nettyManager = GameLibrary.getInstance().getLibraryCore().getNettyManager();
+        NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
         NettyBootstrap nettyBootstrap = nettyManager.getNettyBootstrap();
-
-        registerPackets(nettyManager);
 
         SocketAddress socketAddress = nettyBootstrap.createSocketAddress("localhost", 1337);
 
@@ -48,11 +45,15 @@ public class ServerStarter {
 
                 /* test attribute */ NettyBootstrapChannelAttribute.create("decoder", nettyPacketDecoder),
                 /* test attribute */ NettyBootstrapChannelAttribute.create("encoder", nettyPacketEncoder));
+
+        registerPackets(nettyManager);
     }
 
     private static void registerPackets(NettyManager nettyManager) {
-        nettyManager.registerPacket(nettyManager.getPacketCodecManager().getNettyPacketTyping(), NettyPacketDirection.TO_CLIENT, TestPacket.class, 0x00);
-        nettyManager.registerPacket(nettyManager.getPacketCodecManager().getNettyPacketTyping(), NettyPacketDirection.TO_SERVER, TestPacket.class, 0x00);
+        NettyPacketTyping nettyPacketTyping = nettyManager.getPacketCodecManager().getNettyPacketTyping();
+
+        nettyPacketTyping.registerPacket(NettyPacketDirection.TO_CLIENT, TestPacket.class, 0x00);
+        nettyPacketTyping.registerPacket(NettyPacketDirection.TO_SERVER, TestPacket.class, 0x00);
     }
 
 }

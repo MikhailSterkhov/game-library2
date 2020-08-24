@@ -10,8 +10,11 @@ import lombok.RequiredArgsConstructor;
 public class NettyBootstrapChannelAttribute<T> {
 
     private final String attributeName;
+
     private final T attributeObject;
 
+
+// ================================================================================================================== //
 
     /**
      * Factory метод для создания атрибута, который
@@ -25,4 +28,7 @@ public class NettyBootstrapChannelAttribute<T> {
 
         return new NettyBootstrapChannelAttribute<>(attributeName, attributeObject);
     }
+
+// ================================================================================================================== //
+
 }

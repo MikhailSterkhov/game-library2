@@ -24,11 +24,9 @@ public class TestPacket extends AbstractNettyPacket {
 
     @Override
     public void handle(Channel channel) {
-
-        // u can get any packet data value
         PointLocation pointLocation = packetHandleData.getHandleDataObject(PointLocation.class, "location");
 
-        GameLibrary.getInstance().getLogger().info(pointLocation.toString());
+        GameLibrary.getInstance().getLogger().info("Packet handle data value: " + pointLocation.toString());
     }
 
 }

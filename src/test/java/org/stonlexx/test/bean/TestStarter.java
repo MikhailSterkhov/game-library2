@@ -7,10 +7,10 @@ import org.stonlexx.gamelibrary.core.configuration.PropertyConfigurationManager;
 public class TestStarter {
 
     public static void main(String[] args) {
-        PropertyConfigurationManager coreConfiguration = GameLibrary.getInstance().getLibraryCore().getPropertyManager();
+        PropertyConfigurationManager coreConfiguration = GameLibrary.getInstance().getPropertyManager();
         coreConfiguration.addPropertyConfiguration(TestStarter.class.getClassLoader(), "test.properties");
 
-        BeanManager beanManager = GameLibrary.getInstance().getLibraryCore().getBeanManager();
+        BeanManager beanManager = GameLibrary.getInstance().getBeanManager();
         beanManager.scanPackages("org.stonlexx.test");
 
         TestPlayer testPlayer = beanManager.getBean(TestPlayer.class).getBeanObject();

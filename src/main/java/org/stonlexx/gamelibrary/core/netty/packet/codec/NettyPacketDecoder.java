@@ -40,7 +40,7 @@ public abstract class NettyPacketDecoder
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> handleList) throws Exception {
         Channel channel = channelHandlerContext.channel();
 
-        NettyManager nettyManager = GameLibrary.getInstance().getLibraryCore().getNettyManager();
+        NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
         NettyPacketTyping nettyPacketTyping = nettyManager.getPacketCodecManager().getNettyPacketTyping();
 
         NettyPacketBuffer nettyPacketBuffer = new NettyPacketBuffer(byteBuf);

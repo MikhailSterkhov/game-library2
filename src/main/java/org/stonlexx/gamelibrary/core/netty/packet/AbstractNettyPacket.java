@@ -33,7 +33,7 @@ public abstract class AbstractNettyPacket implements NettyPacket {
      * @param channel - канал, с которого пришел пакет
      */
     protected void handleEvent(Channel channel) {
-        GameLibrary.getInstance().getLibraryCore().getEventManager().callEvent(new PacketHandleEvent(channel, this));
+        GameLibrary.getInstance().getEventManager().callEvent(new PacketHandleEvent(channel, this));
     }
 
 }
