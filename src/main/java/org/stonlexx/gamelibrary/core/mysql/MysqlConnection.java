@@ -67,7 +67,7 @@ public class MysqlConnection {
      */
     public MysqlConnection createConnectionToDatabase(String databaseName) {
         MysqlDatabaseConnection mysqlDatabaseConnection
-                = MysqlDatabaseConnection.createDatabaseConnection(databaseName, mysqlDataSource);
+                = MysqlDatabaseConnection.createDatabaseConnection(databaseName, this);
 
         databaseConnectionMap.put(databaseName.toLowerCase(), mysqlDatabaseConnection);
 

@@ -8,7 +8,7 @@ public class TestStarter {
 
     public static void main(String[] args) {
 
-        //создание подключение может происходить двумя способами
+        //создание подключения может происходить двумя способами
         MysqlConnection mysqlConnection;
 
         //1: Factory method

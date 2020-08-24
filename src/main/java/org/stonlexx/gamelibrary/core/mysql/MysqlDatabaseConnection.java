@@ -23,7 +23,7 @@ public class MysqlDatabaseConnection {
 // ================================================================================================================== //
 
     /**
-     * Создать подключение к базе данных
+     * Создать подключение к схеме базы данных
      *
      * @param databaseName - имя схемы базы данных
      * @param mysqlDataSource - хранилище и обработчик данных базы
@@ -42,6 +42,18 @@ public class MysqlDatabaseConnection {
         }
 
         return null;
+    }
+
+    /**
+     * Создать подключение к схеме базы данных
+     *
+     * @param databaseName - имя схемы базы данных
+     * @param mysqlConnection - основное соединение с базой данных
+     */
+    public static MysqlDatabaseConnection createDatabaseConnection(@NonNull String databaseName,
+                                                                   @NonNull MysqlConnection mysqlConnection) {
+
+        return createDatabaseConnection(databaseName, mysqlConnection.getMysqlDataSource());
     }
 
 // ================================================================================================================== //
@@ -63,12 +75,13 @@ public class MysqlDatabaseConnection {
         }
 
         catch (SQLException exception) {
-            throw new RuntimeException("Все нахуй обосралось с MySql");
+            throw new RuntimeException("Все, вешайся, капут, завяли помидоры с Mysql");
         }
     }
 
     /**
-     * Выолнение SQL запроса с получением {@link java.sql.ResultSet}
+     * Выолнение SQL запроса для обновления или создания
+     * данных в таблице
      *
      * @param asyncQuery - разрешение на асинхронный запрос
      * @param mysqlQuery - запрос в базу данных
