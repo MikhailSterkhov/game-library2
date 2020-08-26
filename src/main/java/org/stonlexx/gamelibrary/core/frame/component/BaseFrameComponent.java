@@ -4,9 +4,15 @@ import lombok.NonNull;
 import org.stonlexx.gamelibrary.core.BaseUpdater;
 
 import javax.swing.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
-public interface BaseFrameComponent {
+public interface BaseFrameComponent<C extends JComponent> {
+
+    Map<JComponent, BaseFrameComponentClickConsumer> KEY_LISTENER_COMPONENTS
+            = new HashMap<>();
 
 
     /**
@@ -16,15 +22,20 @@ public interface BaseFrameComponent {
      * @param period - период обновления
      */
     void startAutoUpdate(@NonNull TimeUnit timeUnit, long period);
+    void setComponentAcceptable(@NonNull Consumer<C> componentAcceptable);
 
 
     /**
      * Получить задачу автообновления
      * данного компонента
      */
-    BaseUpdater<BaseFrameComponent> getComponentUpdater();
+    BaseFrameComponentUpdater getComponentUpdater();
+    Consumer<C> getComponentAcceptable();
 
 
-    JComponent getSwingComponent();
+    C getSwingComponent();
     JPanel getSwingPanel();
+
+
+    void initialize();
 }

@@ -2,7 +2,7 @@ package org.stonlexx.gamelibrary.core.frame.listener;
 
 import java.awt.event.*;
 
-public class WindowListenerAdapter implements WindowListener, WindowStateListener, WindowFocusListener {
+public abstract class WindowListenerAdapter implements WindowListener, WindowStateListener, WindowFocusListener {
 
     /**
      * Invoked when a window has been opened.

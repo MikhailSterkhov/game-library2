@@ -3,7 +3,7 @@ package org.stonlexx.gamelibrary.core.frame.listener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-public class KeyListenerAdapter implements KeyListener {
+public abstract class KeyListenerAdapter implements KeyListener {
 
     /**
      * Invoked when a key has been typed.

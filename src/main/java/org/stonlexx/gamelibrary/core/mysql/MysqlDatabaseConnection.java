@@ -3,6 +3,7 @@ package org.stonlexx.gamelibrary.core.mysql;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
 import org.apache.commons.lang3.SerializationUtils;
 import org.stonlexx.gamelibrary.utility.query.AsyncUtil;
@@ -17,6 +18,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class MysqlDatabaseConnection {
 
     private final MysqlDataSource mysqlDataSource;
+
+    @Getter
     private Connection connection;
 
 

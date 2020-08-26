@@ -1,24 +1,25 @@
 package org.stonlexx.gamelibrary.core;
 
 import lombok.NonNull;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.stonlexx.gamelibrary.GameLibrary;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public interface BaseUpdater<E> extends Consumer<E> {
+public class BaseUpdater {
 
     /**
      * Запусить задачу автообновления элемента
      *
-     * @param element - обновляющийся элемент
+     * @param runnable - задача обновления
      * @param timeUnit - тип времени для периода обновления
      * @param period - период обновления
      */
-    default void startTask(@NonNull E element,
+    public void startTask(@NonNull Runnable runnable,
                            @NonNull TimeUnit timeUnit, long period) {
 
-        GameLibrary.getInstance().getEventExecutors()
-                .scheduleWithFixedDelay(() -> accept(element), 0, period, timeUnit);
+        GameLibrary.getInstance().getSchedulerManager()
+                .runTimer(RandomStringUtils.randomAlphabetic(255), runnable, period, period, timeUnit);
     }
 }

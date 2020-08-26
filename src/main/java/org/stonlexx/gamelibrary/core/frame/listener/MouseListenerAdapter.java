@@ -2,7 +2,7 @@ package org.stonlexx.gamelibrary.core.frame.listener;
 
 import java.awt.event.*;
 
-public class MouseListenerAdapter implements MouseListener, MouseWheelListener, MouseMotionListener {
+public abstract class MouseListenerAdapter implements MouseListener, MouseWheelListener, MouseMotionListener {
 
     /**
      * Invoked when the mouse button has been clicked (pressed

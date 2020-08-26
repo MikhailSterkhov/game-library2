@@ -3,43 +3,57 @@ package org.stonlexx.gamelibrary.core.frame.component;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.stonlexx.gamelibrary.core.BaseUpdater;
+import lombok.Setter;
 
 import javax.swing.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 @RequiredArgsConstructor
 @Getter
-public abstract class BaseFrameComponentAdapter<SC extends JComponent> implements BaseFrameComponent {
+public abstract class BaseFrameComponentAdapter<C extends JComponent>
+        implements BaseFrameComponent<C> {
 
 
-    protected final JPanel swingPanel                                                     = new JPanel();
-    protected final BaseUpdater<BaseFrameComponent> componentUpdater                      = new ComponentUpdater();
+    protected final BaseFrameComponentUpdater componentUpdater                                   = new ComponentUpdater();
+    protected final JPanel swingPanel                                                            = new JPanel();
 
-    protected final SC swingComponent;
+    protected final C swingComponent;
+
+    @Setter
+    @Getter
+    protected Consumer<C> componentAcceptable;
 
 
     @Override
     public void startAutoUpdate(@NonNull TimeUnit timeUnit, long period) {
-        componentUpdater.startTask(this, timeUnit, period);
+        componentUpdater.setUpdateUnit(timeUnit);
+        componentUpdater.setUpdatePeriod(period);
+    }
+
+    @Override
+    public void initialize() {
+
+        // panel options
+        swingPanel.setLocation(swingComponent.getLocation());
+        swingPanel.setSize(swingComponent.getSize());
+
+        swingPanel.setBackground(swingComponent.getBackground());
+
+        // component options
+        swingComponent.setLocation(0, 0);
+
+        // add component
+        swingPanel.add(swingComponent);
     }
 
 
-    /**
-     * Наследствие задачи автообновления
-     * компонента для прорисовки новых значений
-     * на фрейме swing`еров
-     */
-    private static class ComponentUpdater implements BaseUpdater<BaseFrameComponent> {
+    @Getter
+    @Setter
+    public static class ComponentUpdater implements BaseFrameComponentUpdater {
 
-        @Override
-        public void accept(BaseFrameComponent frameComponent) {
-            frameComponent.getSwingPanel().repaint();
-            frameComponent.getSwingPanel().updateUI();
-
-            frameComponent.getSwingComponent().repaint();
-            frameComponent.getSwingComponent().updateUI();
-        }
+        private TimeUnit updateUnit;
+        private long updatePeriod;
     }
 
 }
