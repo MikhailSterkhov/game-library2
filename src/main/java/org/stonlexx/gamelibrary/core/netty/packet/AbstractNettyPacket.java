@@ -18,13 +18,13 @@ public abstract class AbstractNettyPacket implements NettyPacket {
 
 
     @Override
-    public abstract void writePacket(NettyPacketBuffer packetBuffer);
+    public void writePacket(NettyPacketBuffer nettyPacketBuffer) { }
 
     @Override
-    public abstract void readPacket(NettyPacketBuffer packetBuffer);
+    public void readPacket(NettyPacketBuffer nettyPacketBuffer) { }
 
     @Override
-    public abstract void handle(Channel channel);
+    public void handle(Channel channel) { }
 
 
     /**

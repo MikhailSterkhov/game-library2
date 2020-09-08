@@ -10,6 +10,7 @@ import org.stonlexx.gamelibrary.core.frame.component.impl.StandardFrameComponent
 import javax.swing.*;
 import java.awt.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -18,12 +19,10 @@ public class ComponentBuilder<C extends JComponent> {
 
     private final C swingComponent;
 
-
     private TimeUnit updaterTimeUnit;
+    private BiConsumer<C, ComponentBuilder<C>> componentAcceptable;
 
     private long updaterPeriod;
-
-    private Consumer<C> componentAcceptable;
 
 
 // ================================================================================================================== //
@@ -58,6 +57,49 @@ public class ComponentBuilder<C extends JComponent> {
 
 // ================================================================================================================== //
 
+    public ComponentBuilder<C> add(@NonNull BaseFrameComponent<? extends JComponent> frameComponent,
+                                   @NonNull String borderLayout) {
+
+        swingComponent.add(frameComponent.getSwingPanel(), borderLayout);
+        return this;
+    }
+
+    public ComponentBuilder<C> add(@NonNull BaseFrameComponent<? extends JComponent> frameComponent,
+                                   int index) {
+
+        swingComponent.add(frameComponent.getSwingPanel(), index);
+        return this;
+    }
+
+    public ComponentBuilder<C> add(@NonNull BaseFrameComponent<? extends JComponent> frameComponent) {
+        return add(true, frameComponent);
+    }
+
+    public ComponentBuilder<C> add(boolean addToPanel, @NonNull BaseFrameComponent<? extends JComponent> frameComponent) {
+        swingComponent.add(addToPanel ? frameComponent.getSwingPanel() : frameComponent.getSwingComponent());
+
+        return this;
+    }
+
+    public ComponentBuilder<C> add(@NonNull Component component,
+                                   @NonNull String borderLayout) {
+
+        swingComponent.add(component, borderLayout);
+        return this;
+    }
+
+    public ComponentBuilder<C> add(@NonNull Component component,
+                                   int index) {
+
+        swingComponent.add(component, index);
+        return this;
+    }
+
+    public ComponentBuilder<C> add(@NonNull Component component) {
+        swingComponent.add(component);
+
+        return this;
+    }
 
     public ComponentBuilder<C> name(@NonNull String componentName) {
         swingComponent.setName(componentName);
@@ -107,6 +149,13 @@ public class ComponentBuilder<C extends JComponent> {
         return this;
     }
 
+    public ComponentBuilder<C> fontSize(int fontSize) {
+        Font font = swingComponent.getFont();
+        Font newFont = new Font(font.getFontName(), font.getStyle(), fontSize);
+
+        return font(newFont);
+    }
+
     public ComponentBuilder<C> autoUpdater(@NonNull TimeUnit timeUnit, long updatePeriod) {
         this.updaterTimeUnit = timeUnit;
         this.updaterPeriod = updatePeriod;
@@ -115,7 +164,8 @@ public class ComponentBuilder<C extends JComponent> {
     }
 
     public ComponentBuilder<C> click(@NonNull BaseFrameComponentClickConsumer componentClickConsumer) {
-        BaseFrameComponent.KEY_LISTENER_COMPONENTS.put(swingComponent, componentClickConsumer);
+        BaseFrameComponent.KEY_LISTENER_COMPONENTS
+                .put(swingComponent, componentClickConsumer);
 
         return this;
     }
@@ -131,8 +181,8 @@ public class ComponentBuilder<C extends JComponent> {
         return this;
     }
 
-    public ComponentBuilder<C> accept(@NonNull Consumer<C> componentAcceptable) {
-        (this.componentAcceptable = componentAcceptable).accept(swingComponent);
+    public ComponentBuilder<C> accept(@NonNull BiConsumer<C, ComponentBuilder<C>> componentAcceptable) {
+        (this.componentAcceptable = componentAcceptable).accept(swingComponent, this);
 
         return this;
     }

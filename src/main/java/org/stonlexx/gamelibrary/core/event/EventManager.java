@@ -1,9 +1,6 @@
 package org.stonlexx.gamelibrary.core.event;
 
 import lombok.Getter;
-import org.stonlexx.gamelibrary.core.event.exception.EventException;
-import org.stonlexx.gamelibrary.core.event.handler.EventHandler;
-import org.stonlexx.gamelibrary.core.event.listener.GameListener;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -14,7 +11,7 @@ public final class EventManager {
     private final Map<String, List<Method>> eventMethodsMap = new HashMap<>();
 
     @Getter
-    private final Map<Integer, GameListener> listenerMap = new HashMap<>();
+    private final Map<Integer, CoreEventListener> listenerMap = new HashMap<>();
 
 
     /**
@@ -22,15 +19,15 @@ public final class EventManager {
      * уникальным ID
      *
      * @param listenerId   - уникальный ID листенера
-     * @param gameListener - листенер
+     * @param coreEventListener - листенер
      */
-    public void registerListener(int listenerId, GameListener gameListener) {
+    public void registerListener(int listenerId, CoreEventListener coreEventListener) {
         if (listenerMap.containsKey(listenerId)) {
             throw new EventException("Под данным ID (%s) уже зарегистрирован другой листенер", listenerId);
         }
 
-        listenerMap.put(listenerId, gameListener);
-        registerEvents(gameListener);
+        listenerMap.put(listenerId, coreEventListener);
+        registerEvents(coreEventListener);
     }
 
     /**
@@ -38,17 +35,17 @@ public final class EventManager {
      *
      * @param listenerId - ID листенера
      */
-    public GameListener getListener(int listenerId) {
+    public CoreEventListener getListener(int listenerId) {
         return listenerMap.get(listenerId);
     }
 
     /**
      * Регистрация ивентов, их кеширование в мапу
      *
-     * @param gameListener - листенер
+     * @param coreEventListener - листенер
      */
-    private void registerEvents(GameListener gameListener) {
-        List<Method> methodList = Arrays.asList(gameListener.getClass().getMethods());
+    private void registerEvents(CoreEventListener coreEventListener) {
+        List<Method> methodList = Arrays.asList(coreEventListener.getClass().getMethods());
 
         methodList.forEach(method -> {
 
@@ -88,9 +85,9 @@ public final class EventManager {
         }
 
         for (Method method : methods) {
-            for (GameListener gameListener : listenerMap.values()) {
+            for (CoreEventListener coreEventListener : listenerMap.values()) {
                 try {
-                    method.invoke(gameListener, coreEvent);
+                    method.invoke(coreEventListener, coreEvent);
                 } catch (IllegalAccessException | InvocationTargetException ignored) {
                 }
             }

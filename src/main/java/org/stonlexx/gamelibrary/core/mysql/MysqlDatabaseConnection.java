@@ -31,11 +31,14 @@ public class MysqlDatabaseConnection {
      * @param databaseName - имя схемы базы данных
      * @param mysqlDataSource - хранилище и обработчик данных базы
      */
-    public static MysqlDatabaseConnection createDatabaseConnection(@NonNull String databaseName,
+    public static MysqlDatabaseConnection createDatabaseConnection(String databaseName,
                                                                    @NonNull MysqlDataSource mysqlDataSource) {
         try {
             mysqlDataSource = SerializationUtils.clone(mysqlDataSource);
-            mysqlDataSource.setDatabaseName(databaseName);
+
+            if (databaseName != null) {
+                mysqlDataSource.setDatabaseName(databaseName);
+            }
 
             return new MysqlDatabaseConnection(mysqlDataSource, mysqlDataSource.getConnection());
         }

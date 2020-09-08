@@ -34,14 +34,17 @@ public class TestStarter {
 
                 .buildConnection();
 
+        //получение обычного подключения к самой базе данных
+        MysqlDatabaseConnection databaseStandardConnection = mysqlConnection.getStandardMysqlConnection();
+
+        //есть возможность вручную создавать схемы баз данных,
+        // одновременно кешируя и получая соединение к ним
+        MysqlDatabaseConnection testDatabaseConnection = mysqlConnection.createDatabaseScheme("TestDatabase", true);
+
 
         //получение подключения к схеме базы данных
         MysqlDatabaseConnection playerDataConnection = mysqlConnection.getDatabaseConnection("player_data");
-
-        //создание таблиц в схеме
-        playerDataConnection.createTable(true,
-                "PlayerIds", "`Name` VARCHAR(16) NOT NULL PRIMARY KEY, `Id` INT NOT NULL");
-
+        playerDataConnection.createTable(true, "PlayerIds", "`Name` VARCHAR(16) NOT NULL PRIMARY KEY, `Id` INT NOT NULL");
 
 
         // запросы

@@ -1,12 +1,14 @@
 package org.stonlexx.gamelibrary.core.frame;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.stonlexx.gamelibrary.core.BaseUpdater;
 import org.stonlexx.gamelibrary.core.frame.component.BaseFrameComponent;
 import org.stonlexx.gamelibrary.core.frame.component.BaseFrameComponentClickConsumer;
 import org.stonlexx.gamelibrary.core.frame.component.BaseFrameComponentUpdater;
+import org.stonlexx.gamelibrary.core.frame.component.ComponentBuilder;
 import org.stonlexx.gamelibrary.core.frame.listener.MouseListenerAdapter;
 
 import javax.swing.*;
@@ -20,8 +22,8 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class BaseFrame {
 
-    private final BaseFrameImplementation frameImplementation                               = new BaseFrameImplementation();
-    private final List<BaseFrameComponent<JComponent>> frameComponentList                            = new ArrayList<>();
+    private final BaseFrameImplementation frameImplementation = new BaseFrameImplementation();
+    private final List<BaseFrameComponent<JComponent>> frameComponentList = new ArrayList<>();
 
 
     private final String frameTitle;
@@ -30,14 +32,20 @@ public class BaseFrame {
     private final int frameWidth;
     private final int frameHeight;
 
-    @Setter private boolean loaded;
+    @Setter
+    private boolean loaded;
 
-    @Setter private boolean allowResize;
-    @Setter private boolean allowMoving;
-    @Setter private boolean ignoreRepaint;
-    @Setter private boolean undecorated;
+    @Setter
+    private boolean allowResize;
+    @Setter
+    private boolean allowMoving;
+    @Setter
+    private boolean ignoreRepaint;
+    @Setter
+    private boolean undecorated;
 
-    @Setter private Graphics graphics;
+    @Setter
+    private Graphics graphics;
 
 
     /**
@@ -45,6 +53,12 @@ public class BaseFrame {
      * окну и открыть его
      */
     public void showFrame() {
+        if (graphics != null) {
+            frameImplementation.setVisible(true);
+
+            return;
+        }
+
         this.graphics = frameImplementation.getGraphics();
 
         frameImplementation.setUndecorated(undecorated);
@@ -60,11 +74,10 @@ public class BaseFrame {
             public void mouseClicked(MouseEvent event) {
                 Point mousePoint = event.getPoint();
 
-                JComponent swingComponent = BaseFrameComponent.KEY_LISTENER_COMPONENTS.keySet()
-                        .stream()
+                JComponent swingComponent = BaseFrameComponent.KEY_LISTENER_COMPONENTS.keySet().stream()
                         .filter(keyComponent -> {
                             int mouseX = mousePoint.x;
-                            int mouseY = mousePoint.y;
+                            int mouseY = mousePoint.y - 10;
 
                             int componentStartX = keyComponent.getParent().getX() + keyComponent.getX();
                             int componentStartY = keyComponent.getParent().getY() + keyComponent.getY();
@@ -104,10 +117,14 @@ public class BaseFrame {
                         continue;
                     }
 
-                    long periodToMilliseconds = componentUpdater.getUpdateUnit().toMillis(componentUpdater.getUpdatePeriod());
+                    long periodToMilliseconds = componentUpdater.getUpdateUnit()
+                            .toMillis(componentUpdater.getUpdatePeriod());
 
                     if (timeCounter % periodToMilliseconds == 0) {
-                        baseFrameComponent.getComponentAcceptable().accept(baseFrameComponent.getSwingComponent());
+                        baseFrameComponent.getComponentAcceptable().accept(
+                                baseFrameComponent.getSwingComponent(), (ComponentBuilder<JComponent>) baseFrameComponent);
+
+                        baseFrameComponent.getSwingComponent().repaint();
                         baseFrameComponent.getSwingPanel().repaint();
                     }
                 }
@@ -125,10 +142,58 @@ public class BaseFrame {
      * Добавить компонент в окно
      *
      * @param baseFrameComponent - добавляемый компонет
+     * @param borderLayout       - позиция видимости
      */
-    public <C extends JComponent> void addBaseComponent(BaseFrameComponent<C> baseFrameComponent) {
+    public <C extends JComponent> C add(@NonNull BaseFrameComponent<C> baseFrameComponent,
+                                        @NonNull String borderLayout) {
+
+        baseFrameComponent.getSwingPanel().add(baseFrameComponent.getSwingComponent(), borderLayout);
+
         frameImplementation.add(baseFrameComponent.getSwingPanel());
         frameComponentList.add((BaseFrameComponent<JComponent>) baseFrameComponent);
+
+        return baseFrameComponent.getSwingComponent();
+    }
+
+    /**
+     * Добавить компонент в окно
+     *
+     * @param baseFrameComponent - добавляемый компонет
+     * @param componentIndex     - индекс компонента
+     */
+    public <C extends JComponent> C add(@NonNull BaseFrameComponent<C> baseFrameComponent,
+                                        int componentIndex) {
+
+        baseFrameComponent.getSwingPanel().add(baseFrameComponent.getSwingComponent());
+
+        frameImplementation.add(baseFrameComponent.getSwingPanel(), componentIndex);
+        frameComponentList.add((BaseFrameComponent<JComponent>) baseFrameComponent);
+
+        return baseFrameComponent.getSwingComponent();
+    }
+
+    /**
+     * Добавить компонент в окно
+     *
+     * @param baseFrameComponent - добавляемый компонет
+     */
+    public <C extends JComponent> C add(@NonNull BaseFrameComponent<C> baseFrameComponent) {
+        return add(true, baseFrameComponent);
+    }
+
+    /**
+     * Добавить компонент в окно
+     *
+     * @param addToPanel         - разрешение на кастомную панель под компонент
+     * @param baseFrameComponent - добавляемый компонет
+     */
+    public <C extends JComponent> C add(boolean addToPanel, @NonNull BaseFrameComponent<C> baseFrameComponent) {
+        baseFrameComponent.getSwingPanel().add(baseFrameComponent.getSwingComponent());
+
+        frameImplementation.add(addToPanel ? baseFrameComponent.getSwingPanel() : baseFrameComponent.getSwingComponent());
+        frameComponentList.add((BaseFrameComponent<JComponent>) baseFrameComponent);
+
+        return baseFrameComponent.getSwingComponent();
     }
 
 

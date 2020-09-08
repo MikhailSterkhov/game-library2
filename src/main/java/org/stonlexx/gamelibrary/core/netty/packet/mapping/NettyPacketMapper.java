@@ -4,12 +4,10 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import lombok.Getter;
 import lombok.NonNull;
-import org.stonlexx.gamelibrary.GameLibrary;
 import org.stonlexx.gamelibrary.core.netty.exception.NettyException;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
 
-import java.lang.invoke.*;
 import java.util.EnumMap;
 
 public final class NettyPacketMapper {
@@ -34,6 +32,13 @@ public final class NettyPacketMapper {
                                @NonNull Class<? extends NettyPacket> nettyPacketClass,
 
                                int nettyPacketId) {
+
+        if (nettyPacketDirection == NettyPacketDirection.TO_ALL) {
+
+            registerPacket(NettyPacketDirection.TO_SERVER, nettyPacketClass, nettyPacketId);
+            registerPacket(NettyPacketDirection.TO_CLIENT, nettyPacketClass, nettyPacketId);
+            return;
+        }
 
         packetMap.get(nettyPacketDirection).put(nettyPacketClass, nettyPacketId);
     }
@@ -61,6 +66,13 @@ public final class NettyPacketMapper {
         }
 
         return null;
+    }
+
+    /**
+     * Получить общее количество зарегистрированных пакетов
+     */
+    public int getRegisteredPacketsCount() {
+        return packetMap.get(NettyPacketDirection.TO_SERVER).size() + packetMap.get(NettyPacketDirection.TO_CLIENT).size();
     }
 
     /**

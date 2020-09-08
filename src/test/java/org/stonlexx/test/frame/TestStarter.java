@@ -1,6 +1,5 @@
 package org.stonlexx.test.frame;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.stonlexx.gamelibrary.core.frame.BaseFrame;
 import org.stonlexx.gamelibrary.core.frame.component.ComponentBuilder;
 
@@ -12,23 +11,39 @@ public class TestStarter {
 
     public static void main(String[] args) {
         BaseFrame baseFrame = new BaseFrame("Test frame", new Point(350, 200), 1200, 800);
-
         baseFrame.setAllowResize(true);
-        //baseFrame.setUndecorated(true);
-        //baseFrame.setAllowMoving(false);
 
-        baseFrame.addBaseComponent(ComponentBuilder.newBuilder(JLabel.class)
-                .name("test-label-component")
-                .location(150, 300)
-                .size(200, 50)
+        JTextArea textArea = baseFrame.add(ComponentBuilder.newBuilder(JTextArea.class)
+                .location(50, 100)
+                .size(500, 100)
 
                 .background(Color.DARK_GRAY)
-                .color(Color.WHITE)
+                .color(Color.LIGHT_GRAY)
+                .font(new Font(Font.DIALOG_INPUT, Font.BOLD, 18))
 
-                .click((component, event) -> System.out.println("Ты кликнул по строке " + event.getClickCount() + " раз"))
+                .accept((component, builder) -> component.setText("<Напиши тут свой пароль от вк>"))
+                .autoUpdater(TimeUnit.SECONDS, 1)
 
-                .autoUpdater(TimeUnit.SECONDS, 2)
-                .accept(component -> component.setText(RandomStringUtils.randomAlphabetic(25))).build());
+                .build(), BorderLayout.CENTER);
+
+        baseFrame.add(ComponentBuilder.newBuilder(JLabel.class)
+                .location(100, 10)
+                .size(200, 20)
+
+                .accept((component1, builder1) -> component1.setText("Write your text"))
+                .autoUpdater(TimeUnit.SECONDS, 1)
+
+                .build());
+
+        baseFrame.add(ComponentBuilder.newBuilder(JButton.class)
+                .location(100, 300)
+                .size(200, 30)
+
+                .buttonAction((component1, event) -> System.out.println(textArea.getText()))
+                .accept((component1, builder1) -> component1.setText("ACCEPT"))
+                .autoUpdater(TimeUnit.SECONDS, 1)
+
+                .build());
 
         baseFrame.showFrame();
     }

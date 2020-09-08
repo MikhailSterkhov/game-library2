@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import javax.swing.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 @RequiredArgsConstructor
@@ -16,13 +17,13 @@ public abstract class BaseFrameComponentAdapter<C extends JComponent>
 
 
     protected final BaseFrameComponentUpdater componentUpdater                                   = new ComponentUpdater();
-    protected final JPanel swingPanel                                                            = new JPanel();
+    protected final JPanel swingPanel                                                            = new JPanel(); // = new ComponentPanel(100);
 
     protected final C swingComponent;
 
     @Setter
     @Getter
-    protected Consumer<C> componentAcceptable;
+    protected BiConsumer<C, ComponentBuilder<C>> componentAcceptable;
 
 
     @Override
@@ -38,13 +39,10 @@ public abstract class BaseFrameComponentAdapter<C extends JComponent>
         swingPanel.setLocation(swingComponent.getLocation());
         swingPanel.setSize(swingComponent.getSize());
 
-        swingPanel.setBackground(swingComponent.getBackground());
+        //swingPanel.setBackground(swingComponent.getBackground());
 
         // component options
         swingComponent.setLocation(0, 0);
-
-        // add component
-        swingPanel.add(swingComponent);
     }
 
 
@@ -53,6 +51,7 @@ public abstract class BaseFrameComponentAdapter<C extends JComponent>
     public static class ComponentUpdater implements BaseFrameComponentUpdater {
 
         private TimeUnit updateUnit;
+
         private long updatePeriod;
     }
 

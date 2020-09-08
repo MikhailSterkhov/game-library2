@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public interface BaseFrameComponent<C extends JComponent> {
@@ -22,7 +23,7 @@ public interface BaseFrameComponent<C extends JComponent> {
      * @param period - период обновления
      */
     void startAutoUpdate(@NonNull TimeUnit timeUnit, long period);
-    void setComponentAcceptable(@NonNull Consumer<C> componentAcceptable);
+    void setComponentAcceptable(@NonNull BiConsumer<C, ComponentBuilder<C>> componentAcceptable);
 
 
     /**
@@ -30,7 +31,7 @@ public interface BaseFrameComponent<C extends JComponent> {
      * данного компонента
      */
     BaseFrameComponentUpdater getComponentUpdater();
-    Consumer<C> getComponentAcceptable();
+    BiConsumer<C, ComponentBuilder<C>> getComponentAcceptable();
 
 
     C getSwingComponent();

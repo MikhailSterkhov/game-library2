@@ -14,7 +14,8 @@ public final class NettyPacketCodecManager {
                                  encodePacketDirection = NettyPacketDirection.TO_CLIENT;
 
     @Setter
-    private NettyPacketTyping nettyPacketTyping = NettyPacketTyping.getPacketTyping("default");
+    private NettyPacketTyping nettyPacketTyping = NettyPacketTyping.getPacketTyping("play");
+
 
     /**
      * для хранения необходимых данных, которые не круто

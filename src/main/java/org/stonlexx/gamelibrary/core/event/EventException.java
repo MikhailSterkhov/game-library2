@@ -1,4 +1,4 @@
-package org.stonlexx.gamelibrary.core.event.exception;
+package org.stonlexx.gamelibrary.core.event;
 
 public class EventException extends RuntimeException {
 

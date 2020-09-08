@@ -22,6 +22,9 @@ public class MysqlConnection {
     private final MysqlDataSource mysqlDataSource                                                = new MysqlDataSource();
 
 
+    private MysqlDatabaseConnection standardMysqlConnection;
+
+
 
 // ================================================================================================================== //
 
@@ -53,6 +56,9 @@ public class MysqlConnection {
             mysqlDataSource.setEncoding("UTF-8");
         }
 
+        mysqlConnection.standardMysqlConnection
+                = MysqlDatabaseConnection.createDatabaseConnection(null, mysqlDataSource);
+
         return mysqlConnection;
     }
 
@@ -77,10 +83,24 @@ public class MysqlConnection {
     /**
      * Получить кешированное подключение к базе данных
      *
-     * @param databaseName - имя схемы из базы данных
+     * @param databaseName - имя схемы базы данных
      */
     public MysqlDatabaseConnection getDatabaseConnection(String databaseName) {
         return databaseConnectionMap.get(databaseName.toLowerCase());
+    }
+
+    /**
+     * Создать схему базы данных и кешировать
+     * ее соединение
+     *
+     * @param databaseName - имя схемы базы данных
+     * @param connectionCache - разрешение на кеширование соединения
+     */
+    public MysqlDatabaseConnection createDatabaseScheme(String databaseName, boolean connectionCache) {
+        standardMysqlConnection.execute(false,
+                "CREATE DATABASE IF NOT EXISTS `" + databaseName + "`");
+
+        return connectionCache ? createConnectionToDatabase(databaseName).getDatabaseConnection(databaseName) : null;
     }
 
 }
