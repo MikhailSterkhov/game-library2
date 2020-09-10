@@ -1,7 +1,6 @@
 package org.stonlexx.gamelibrary.core.netty.packet.codec.impl;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
 import lombok.NonNull;
 import org.stonlexx.gamelibrary.core.netty.packet.AbstractNettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;

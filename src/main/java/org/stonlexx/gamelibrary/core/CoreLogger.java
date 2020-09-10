@@ -1,6 +1,8 @@
 package org.stonlexx.gamelibrary.core;
 
 import jline.console.ConsoleReader;
+import lombok.Getter;
+import lombok.NonNull;
 import org.fusesource.jansi.Ansi;
 
 import java.io.IOException;
@@ -13,8 +15,10 @@ import java.util.logging.Logger;
 
 public class CoreLogger extends Logger {
 
-    protected ConsoleReader consoleReader;
     protected final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
+
+    @Getter
+    protected ConsoleReader consoleReader;
 
 
     public CoreLogger() {
@@ -32,7 +36,7 @@ public class CoreLogger extends Logger {
     }
 
     @Override
-    public void log(LogRecord logRecord) {
+    public void log(@NonNull LogRecord logRecord) {
         StringBuilder formatted = new StringBuilder();
 
         formatted.append(simpleDateFormat.format(logRecord.getMillis()))
@@ -57,7 +61,7 @@ public class CoreLogger extends Logger {
         writeLine(formatted.toString() + Ansi.ansi().reset().toString());
     }
 
-    protected void writeLine(String line) {
+    protected void writeLine(@NonNull String line) {
         try {
 
             consoleReader.print(line);

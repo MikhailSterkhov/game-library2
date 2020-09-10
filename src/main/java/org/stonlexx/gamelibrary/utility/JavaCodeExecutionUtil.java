@@ -19,7 +19,7 @@ import java.util.*;
 @UtilityClass
 public class JavaCodeExecutionUtil {
 
-    private final RuntimeCompiler RUNTIME_COMPILER = new RuntimeCompiler();
+    public final RuntimeCompiler RUNTIME_COMPILER = new RuntimeCompiler();
 
 
     /**
@@ -55,7 +55,7 @@ public class JavaCodeExecutionUtil {
      * Нужный код для компиляции и выполнения
      * написанного Java кода в строке, лучше не трогать))))
      */
-    class RuntimeCompiler {
+    public class RuntimeCompiler {
 
         private final JavaCompiler javaCompiler;
         private final MapClassLoader mapClassLoader;
@@ -86,6 +86,12 @@ public class JavaCodeExecutionUtil {
             compilationUnits.add(javaFileObject);
         }
 
+        public void addClass(@NonNull Class<?> classToAdd) {
+            JavaFileObject javaFileObject = new MemoryJavaClassFileObject(classToAdd.getName().replace(".class", ""));
+
+            compilationUnits.add(javaFileObject);
+        }
+
 
         public void compile() {
             DiagnosticCollector<JavaFileObject> diagnosticsCollector = new DiagnosticCollector<>();
@@ -100,7 +106,7 @@ public class JavaCodeExecutionUtil {
             return mapClassLoader.findClass(className);
         }
 
-        private static final class MemoryJavaSourceFileObject extends SimpleJavaFileObject {
+        public class MemoryJavaSourceFileObject extends SimpleJavaFileObject {
 
             private final String code;
 
@@ -117,17 +123,7 @@ public class JavaCodeExecutionUtil {
             }
         }
 
-
-        private class MapClassLoader extends ClassLoader {
-
-            @Override
-            public Class<?> findClass(@NonNull String name) {
-                return defineClass(name, classData.get(name), 0, classData.get(name).length);
-            }
-        }
-
-
-        private class MemoryJavaClassFileObject extends SimpleJavaFileObject {
+        public class MemoryJavaClassFileObject extends SimpleJavaFileObject {
 
             private final String className;
 
@@ -143,7 +139,16 @@ public class JavaCodeExecutionUtil {
             }
         }
 
-        private class ClassDataFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> {
+
+        public class MapClassLoader extends ClassLoader {
+
+            @Override
+            public Class<?> findClass(@NonNull String name) {
+                return defineClass(name, classData.get(name), 0, classData.get(name).length);
+            }
+        }
+
+        public class ClassDataFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> {
 
             private ClassDataFileManager(@NonNull StandardJavaFileManager standardJavaFileManager) {
                 super(standardJavaFileManager);
@@ -160,7 +165,7 @@ public class JavaCodeExecutionUtil {
         }
 
         @RequiredArgsConstructor
-        private class ClassDataOutputStream extends OutputStream {
+        public class ClassDataOutputStream extends OutputStream {
 
             private final String className;
             private final ByteArrayOutputStream byteArrayOutputStream= new ByteArrayOutputStream();
@@ -181,7 +186,7 @@ public class JavaCodeExecutionUtil {
     }
 
 
-    class MethodInvocationUtils {
+    public class MethodInvocationUtils {
 
         public static void invokeStaticMethod(@NonNull Class<?> clazz,
                                               @NonNull String methodName,
@@ -200,7 +205,7 @@ public class JavaCodeExecutionUtil {
             }
         }
 
-        private static Method findFirstMatchingStaticMethod(@NonNull Class<?> clazz,
+        public static Method findFirstMatchingStaticMethod(@NonNull Class<?> clazz,
                                                             @NonNull String methodName,
 
                                                             @NonNull Object... args) {
@@ -219,7 +224,7 @@ public class JavaCodeExecutionUtil {
             return null;
         }
 
-        private static boolean areAssignable(@NonNull Class<?>[] types,
+        public static boolean areAssignable(@NonNull Class<?>[] types,
                                              @NonNull Object... args) {
 
             if (types.length != args.length) {
