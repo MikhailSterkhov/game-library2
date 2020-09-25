@@ -14,8 +14,8 @@ import java.util.Collection;
 @Getter
 public final class NettyManager {
 
-    private final NettyBootstrap nettyBootstrap                                             = new NettyBootstrap();
-    private final NettyPacketCodecManager packetCodecManager                                = new NettyPacketCodecManager();
+    private final NettyBootstrap nettyBootstrap = new NettyBootstrap();
+    private final NettyPacketCodecManager packetCodecManager = new NettyPacketCodecManager();
 
 
     /**
@@ -24,24 +24,24 @@ public final class NettyManager {
      *
      * @param typingName - название типизации
      */
-    public NettyPacketTyping getPacketTyping(String typingName) {
-        return NettyPacketTyping.getPacketTyping(typingName);
+    public <T> NettyPacketTyping<T> getPacketTyping(Class<T> packetKeyClass, String typingName) {
+        return NettyPacketTyping.getPacketTyping(packetKeyClass, typingName);
     }
 
     /**
      * Зарегистрировать пакет в маппере
      *
-     * @param nettyPacketTyping - типизация пакета
+     * @param nettyPacketTyping    - типизация пакета
      * @param nettyPacketDirection - директория пакета
-     * @param nettyPacketClass - класс регистрируемого пакета
-     * @param packetId - номер пакета для регистрации
+     * @param nettyPacketClass     - класс регистрируемого пакета
+     * @param packetId             - номер пакета для регистрации
      */
-    public void registerPacket(@NonNull NettyPacketTyping nettyPacketTyping,
+    public <T> void registerPacket(@NonNull NettyPacketTyping<T> nettyPacketTyping,
 
-                               @NonNull NettyPacketDirection nettyPacketDirection,
-                               @NonNull Class<? extends NettyPacket> nettyPacketClass,
+                                   @NonNull NettyPacketDirection nettyPacketDirection,
+                                   @NonNull Class<? extends NettyPacket> nettyPacketClass,
 
-                               int packetId) {
+                                   T packetId) {
 
         nettyPacketTyping.registerPacket(nettyPacketDirection, nettyPacketClass, packetId);
     }
@@ -49,32 +49,33 @@ public final class NettyManager {
     /**
      * Зарегистрировать пакет в маппере
      *
-     * @param packetTypingName - типизация пакета
+     * @param packetTypingName     - типизация пакета
      * @param nettyPacketDirection - директория пакета
-     * @param nettyPacketClass - класс регистрируемого пакета
-     * @param packetId - номер пакета для регистрации
+     * @param nettyPacketClass     - класс регистрируемого пакета
+     * @param packetId             - номер пакета для регистрации
      */
-    public void registerPacket(@NonNull String packetTypingName,
+    public <T> void registerPacket(@NonNull Class<T> packetKeyClass,
+                                   @NonNull String packetTypingName,
 
-                               @NonNull NettyPacketDirection nettyPacketDirection,
-                               @NonNull Class<? extends NettyPacket> nettyPacketClass,
+                                   @NonNull NettyPacketDirection nettyPacketDirection,
+                                   @NonNull Class<? extends NettyPacket> nettyPacketClass,
 
-                               int packetId) {
+                                   T packetId) {
 
-        getPacketTyping(packetTypingName).registerPacket(nettyPacketDirection, nettyPacketClass, packetId);
+        getPacketTyping(packetKeyClass, packetTypingName).registerPacket(nettyPacketDirection, nettyPacketClass, packetId);
     }
 
     /**
      * Получить зарегистрированный пакет по его номеру
      *
-     * @param nettyPacketTyping - типизация пакета
+     * @param nettyPacketTyping    - типизация пакета
      * @param nettyPacketDirection - директория пакета
-     * @param packetId - номер получаемого пакета
+     * @param packetId             - номер получаемого пакета
      */
-    public NettyPacket getNettyPacket(@NonNull NettyPacketTyping nettyPacketTyping,
-                                      @NonNull NettyPacketDirection nettyPacketDirection,
+    public <T> NettyPacket getNettyPacket(@NonNull NettyPacketTyping<T> nettyPacketTyping,
+                                          @NonNull NettyPacketDirection nettyPacketDirection,
 
-                                      int packetId) {
+                                          T packetId) {
 
         return nettyPacketTyping.getNettyPacket(nettyPacketDirection, packetId);
     }
@@ -82,16 +83,17 @@ public final class NettyManager {
     /**
      * Получить зарегистрированный пакет по его номеру
      *
-     * @param packetTypingName - типизация пакета
+     * @param packetTypingName     - типизация пакета
      * @param nettyPacketDirection - директория пакета
-     * @param packetId - номер получаемого пакета
+     * @param packetId             - номер получаемого пакета
      */
-    public NettyPacket getNettyPacket(@NonNull String packetTypingName,
-                                      @NonNull NettyPacketDirection nettyPacketDirection,
+    public <T> NettyPacket getNettyPacket(@NonNull Class<T> packetKeyClass,
+                                          @NonNull String packetTypingName,
+                                          @NonNull NettyPacketDirection nettyPacketDirection,
 
-                                      int packetId) {
+                                          T packetId) {
 
-        return getPacketTyping(packetTypingName).getNettyPacket(nettyPacketDirection, packetId);
+        return getPacketTyping(packetKeyClass, packetTypingName).getNettyPacket(nettyPacketDirection, packetId);
     }
 
     /**
@@ -99,16 +101,18 @@ public final class NettyManager {
      * классу этого пакета
      *
      * @param nettyPacketDirection - директория пакета
-     * @param nettyPacketClass - класс пакета
+     * @param nettyPacketClass     - класс пакета
      */
-    public NettyPacketTyping findTypingByNettyPacket(NettyPacketDirection nettyPacketDirection, Class<? extends NettyPacket> nettyPacketClass) {
-        Collection<NettyPacketTyping> nettyPacketTypingCollection = NettyPacketTyping.getPacketTypingMap().values();
+    public <T> NettyPacketTyping<T> findTypingByNettyPacket(@NonNull NettyPacketDirection nettyPacketDirection,
+                                                            @NonNull Class<? extends NettyPacket> nettyPacketClass) {
 
-        for (NettyPacketTyping nettyPacketTyping : nettyPacketTypingCollection) {
-            NettyPacketMapper nettyPacketMapper = nettyPacketTyping.getPacketMapper();
+        Collection<NettyPacketTyping<?>> nettyPacketTypingCollection = NettyPacketTyping.getPacketTypingMap().values();
+
+        for (NettyPacketTyping<?> nettyPacketTyping : nettyPacketTypingCollection) {
+            NettyPacketMapper<T> nettyPacketMapper = (NettyPacketMapper<T>) nettyPacketTyping.getPacketMapper();
 
             if (nettyPacketMapper.hasNettyPacket(nettyPacketDirection, nettyPacketClass)) {
-                return nettyPacketTyping;
+                return (NettyPacketTyping<T>) nettyPacketTyping;
             }
         }
 
@@ -119,16 +123,16 @@ public final class NettyManager {
      * Получить номер пакета по его классу
      *
      * @param nettyPacketDirection - директория пакета
-     * @param nettyPacketClass - класс пакета
+     * @param nettyPacketClass     - класс пакета
      */
-    public int getNettyPacketId(NettyPacketDirection nettyPacketDirection, Class<? extends NettyPacket> nettyPacketClass) {
-        NettyPacketTyping nettyPacketTyping = findTypingByNettyPacket(nettyPacketDirection, nettyPacketClass);
+    public <T> T getNettyPacketId(NettyPacketDirection nettyPacketDirection, Class<? extends NettyPacket> nettyPacketClass) {
+        NettyPacketTyping<T> nettyPacketTyping = findTypingByNettyPacket(nettyPacketDirection, nettyPacketClass);
 
         if (nettyPacketTyping == null) {
-            return -1;
+            return null;
         }
 
-        NettyPacketMapper nettyPacketMapper = nettyPacketTyping.getPacketMapper();
+        NettyPacketMapper<T> nettyPacketMapper = nettyPacketTyping.getPacketMapper();
 
         return nettyPacketMapper.getPacketMap().get(nettyPacketDirection).get(nettyPacketClass);
     }

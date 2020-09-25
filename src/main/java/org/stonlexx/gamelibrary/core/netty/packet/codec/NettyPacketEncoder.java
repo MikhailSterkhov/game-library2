@@ -2,7 +2,6 @@ package org.stonlexx.gamelibrary.core.netty.packet.codec;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.NonNull;
@@ -13,12 +12,8 @@ import org.stonlexx.gamelibrary.core.netty.packet.NettyPacketHandleData;
 import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
 import org.stonlexx.gamelibrary.utility.JsonUtil;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Field;
 import java.util.Map;
 
 public abstract class NettyPacketEncoder
@@ -36,7 +31,8 @@ public abstract class NettyPacketEncoder
     public abstract void encode(@NonNull Channel channel,
                                 @NonNull NettyPacketBuffer nettyPacketBuffer,
 
-                                @NonNull NettyPacket nettyPacket, int nettyPacketId)
+                                @NonNull NettyPacket nettyPacket,
+                                @NonNull Object nettyPacketId)
             throws IOException;
 
     @Override
@@ -46,9 +42,14 @@ public abstract class NettyPacketEncoder
         NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
         NettyPacketBuffer nettyPacketBuffer = new NettyPacketBuffer(byteBuf);
 
-        int nettyPacketId = nettyManager.getNettyPacketId(nettyManager.getPacketCodecManager().getEncodePacketDirection(), nettyPacket.getClass());
+        Object nettyPacketId = nettyManager.getNettyPacketId(nettyManager.getPacketCodecManager().getEncodePacketDirection(), nettyPacket.getClass());
 
-        nettyPacketBuffer.writeVarInt(nettyPacketId);
+        if (nettyPacketId == null) {
+            throw new NullPointerException("Packet id of " + nettyPacket.getClass().getSimpleName() + " not found!");
+        }
+
+        nettyPacketBuffer.writeString(nettyPacketId.getClass().getName());
+        nettyPacketBuffer.writeString(JsonUtil.toJson(nettyPacketId));
 
         encode(channel, nettyPacketBuffer, nettyPacket, nettyPacketId);
     }

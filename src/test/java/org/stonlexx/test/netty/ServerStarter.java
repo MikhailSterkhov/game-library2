@@ -1,30 +1,19 @@
 package org.stonlexx.test.netty;
 
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.socket.SocketChannel;
 import org.stonlexx.gamelibrary.GameLibrary;
-import org.stonlexx.gamelibrary.core.netty.NettyManager;
-import org.stonlexx.gamelibrary.core.netty.bootstrap.NettyBootstrap;
 import org.stonlexx.gamelibrary.core.netty.bootstrap.NettyBootstrapChannelAttribute;
+import org.stonlexx.gamelibrary.core.netty.builder.NettyServerBuilder;
 import org.stonlexx.gamelibrary.core.netty.packet.codec.impl.StandardNettyPacketDecoder;
 import org.stonlexx.gamelibrary.core.netty.packet.codec.impl.StandardNettyPacketEncoder;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
-import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketTyping;
 import org.stonlexx.test.bean.TestPlayer;
-
-import java.net.SocketAddress;
 
 public class ServerStarter {
 
     public static void main(String[] args) {
-        NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
-        NettyBootstrap nettyBootstrap = nettyManager.getNettyBootstrap();
+        NettyServerBuilder.newServerBuilder("localhost", 1337, String.class)
 
-        SocketAddress socketAddress = nettyBootstrap.createSocketAddress("localhost", 1337);
-
-        ChannelFutureListener channelFutureListener = nettyBootstrap.createFutureListener(
-                (channelFuture, isSuccess) -> {
+                .futureListener((channelFuture, isSuccess) -> {
                     if (isSuccess) {
                         GameLibrary.getInstance().getLogger().info("Channel " + channelFuture.channel().localAddress() + " was success bind!");
 
@@ -32,28 +21,21 @@ public class ServerStarter {
                     }
 
                     GameLibrary.getInstance().getLogger().info("Channel " + channelFuture.channel().localAddress() + " failed to bind!");
-                });
+                })
+                .channelInitializer(nioSocketChannel -> {
 
-        StandardNettyPacketDecoder nettyPacketDecoder = new StandardNettyPacketDecoder();
-        StandardNettyPacketEncoder nettyPacketEncoder = new StandardNettyPacketEncoder();
+                    nioSocketChannel.pipeline().addLast("packet-decoder", new StandardNettyPacketDecoder());
+                    nioSocketChannel.pipeline().addLast("packet-encoder", new StandardNettyPacketEncoder());
+                })
+                .bootstrapAttributes(
+                        NettyBootstrapChannelAttribute.create("player", new TestPlayer())
+                )
 
-        ChannelInitializer<SocketChannel> channelInitializer = nettyBootstrap.createChannelInitializer(null, nettyPacketDecoder, nettyPacketEncoder);
+                .acceptPacketTyping(nettyPacketTyping -> nettyPacketTyping.setPacketKeyHandler(Class::getSimpleName))
+                .registerPacket(NettyPacketDirection.TO_CLIENT, TestPacket.class)
+                .registerPacket(NettyPacketDirection.TO_SERVER, TestPacket.class)
 
-        // create server bootstrap
-        nettyBootstrap.createServerBootstrap(socketAddress, channelFutureListener, channelInitializer,
-                /* test attribute */ NettyBootstrapChannelAttribute.create("player", new TestPlayer()),
-
-                /* test attribute */ NettyBootstrapChannelAttribute.create("decoder", nettyPacketDecoder),
-                /* test attribute */ NettyBootstrapChannelAttribute.create("encoder", nettyPacketEncoder));
-
-        registerPackets(nettyManager);
-    }
-
-    private static void registerPackets(NettyManager nettyManager) {
-        NettyPacketTyping nettyPacketTyping = nettyManager.getPacketCodecManager().getNettyPacketTyping();
-
-        nettyPacketTyping.registerPacket(NettyPacketDirection.TO_CLIENT, TestPacket.class, 0x00);
-        nettyPacketTyping.registerPacket(NettyPacketDirection.TO_SERVER, TestPacket.class, 0x00);
+                .bindNettyServer();
     }
 
 }

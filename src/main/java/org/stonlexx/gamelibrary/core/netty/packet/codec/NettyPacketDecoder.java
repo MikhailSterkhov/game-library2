@@ -2,7 +2,6 @@ package org.stonlexx.gamelibrary.core.netty.packet.codec;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.NonNull;
@@ -31,7 +30,8 @@ public abstract class NettyPacketDecoder
     public abstract void decode(@NonNull Channel channel,
                                 @NonNull NettyPacketBuffer nettyPacketBuffer,
 
-                                @NonNull NettyPacket nettyPacket, int nettyPacketId)
+                                @NonNull NettyPacket nettyPacket,
+                                @NonNull Object nettyPacketId)
             throws IOException;
 
     @Override
@@ -39,11 +39,11 @@ public abstract class NettyPacketDecoder
         Channel channel = channelHandlerContext.channel();
 
         NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
-        NettyPacketTyping nettyPacketTyping = nettyManager.getPacketCodecManager().getNettyPacketTyping();
+        NettyPacketTyping<Object> nettyPacketTyping = nettyManager.getPacketCodecManager().getNettyPacketTyping();
 
         NettyPacketBuffer nettyPacketBuffer = new NettyPacketBuffer(byteBuf);
 
-        int nettyPacketId = nettyPacketBuffer.readVarInt();
+        Object nettyPacketId = nettyPacketBuffer.readVarInt();
 
         NettyPacket nettyPacket = nettyPacketTyping.getNettyPacket(nettyManager.getPacketCodecManager().getDecodePacketDirection(), nettyPacketId);
 

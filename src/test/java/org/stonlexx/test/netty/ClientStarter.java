@@ -1,60 +1,41 @@
 package org.stonlexx.test.netty;
 
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.socket.SocketChannel;
 import org.stonlexx.gamelibrary.GameLibrary;
-import org.stonlexx.gamelibrary.core.netty.NettyManager;
-import org.stonlexx.gamelibrary.core.netty.bootstrap.NettyBootstrap;
 import org.stonlexx.gamelibrary.core.netty.bootstrap.NettyBootstrapChannelAttribute;
+import org.stonlexx.gamelibrary.core.netty.builder.NettyClientBuilder;
 import org.stonlexx.gamelibrary.core.netty.packet.codec.impl.StandardNettyPacketDecoder;
 import org.stonlexx.gamelibrary.core.netty.packet.codec.impl.StandardNettyPacketEncoder;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
-import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketTyping;
 import org.stonlexx.test.bean.TestPlayer;
-
-import java.net.SocketAddress;
 
 public class ClientStarter {
 
     public static void main(String[] args) {
-        NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
-        NettyBootstrap nettyBootstrap = nettyManager.getNettyBootstrap();
+        NettyClientBuilder.newServerBuilder("localhost", 1337, String.class)
 
-        SocketAddress socketAddress = nettyBootstrap.createSocketAddress("localhost", 1337);
-
-        ChannelFutureListener channelFutureListener = nettyBootstrap.createFutureListener(
-                (channelFuture, isSuccess) -> {
+                .futureListener((channelFuture, isSuccess) -> {
                     if (isSuccess) {
-                        GameLibrary.getInstance().getLogger().info("Channel " + channelFuture.channel().localAddress() + " was success connected!");
+                        GameLibrary.getInstance().getLogger().info("Channel " + channelFuture.channel().localAddress() + " was success bind!");
 
-                        channelFuture.channel().writeAndFlush(new TestPacket());
                         return;
                     }
 
-                    GameLibrary.getInstance().getLogger().info("Channel " + channelFuture.channel().localAddress() + " failed to connect!");
-                });
+                    GameLibrary.getInstance().getLogger().info("Channel " + channelFuture.channel().localAddress() + " failed to bind!");
+                })
+                .channelInitializer(nioSocketChannel -> {
 
-        StandardNettyPacketDecoder nettyPacketDecoder = new StandardNettyPacketDecoder();
-        StandardNettyPacketEncoder nettyPacketEncoder = new StandardNettyPacketEncoder();
+                    nioSocketChannel.pipeline().addLast("packet-decoder", new StandardNettyPacketDecoder());
+                    nioSocketChannel.pipeline().addLast("packet-encoder", new StandardNettyPacketEncoder());
+                })
+                .bootstrapAttributes(
+                        NettyBootstrapChannelAttribute.create("player", new TestPlayer())
+                )
 
-        ChannelInitializer<SocketChannel> channelInitializer = nettyBootstrap.createChannelInitializer(null, nettyPacketDecoder, nettyPacketEncoder);
+                .acceptPacketTyping(nettyPacketTyping -> nettyPacketTyping.setPacketKeyHandler(Class::getSimpleName))
+                .registerPacket(NettyPacketDirection.TO_CLIENT, TestPacket.class)
+                .registerPacket(NettyPacketDirection.TO_SERVER, TestPacket.class)
 
-        // create client bootstrap
-        nettyBootstrap.createClientBootstrap(socketAddress, channelFutureListener, channelInitializer,
-                /* test attribute */ NettyBootstrapChannelAttribute.create("player", new TestPlayer()),
-
-                /* test attribute */ NettyBootstrapChannelAttribute.create("decoder", nettyPacketDecoder),
-                /* test attribute */ NettyBootstrapChannelAttribute.create("encoder", nettyPacketEncoder));
-
-        registerPackets(nettyManager);
-    }
-
-    private static void registerPackets(NettyManager nettyManager) {
-        NettyPacketTyping nettyPacketTyping = nettyManager.getPacketCodecManager().getNettyPacketTyping();
-
-        nettyPacketTyping.registerPacket(NettyPacketDirection.TO_CLIENT, TestPacket.class, 0x00);
-        nettyPacketTyping.registerPacket(NettyPacketDirection.TO_SERVER, TestPacket.class, 0x00);
+                .connectToServer();
     }
 
 }

@@ -7,14 +7,15 @@ import lombok.NonNull;
 import org.stonlexx.gamelibrary.core.netty.exception.NettyException;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
+import org.stonlexx.gamelibrary.utility.query.ResponseHandler;
 
 import java.util.EnumMap;
 
-public final class NettyPacketMapper {
+public final class NettyPacketMapper<T> {
 
     @Getter
-    private final EnumMap<NettyPacketDirection, BiMap<Class<? extends NettyPacket>, Integer>> packetMap
-            = new EnumMap<NettyPacketDirection, BiMap<Class<? extends NettyPacket>, Integer>>(NettyPacketDirection.class) {{
+    private final EnumMap<NettyPacketDirection, BiMap<Class<? extends NettyPacket>, T>> packetMap
+            = new EnumMap<NettyPacketDirection, BiMap<Class<? extends NettyPacket>, T>>(NettyPacketDirection.class) {{
 
         put(NettyPacketDirection.TO_CLIENT, HashBiMap.create());
         put(NettyPacketDirection.TO_SERVER, HashBiMap.create());
@@ -31,7 +32,30 @@ public final class NettyPacketMapper {
     public void registerPacket(@NonNull NettyPacketDirection nettyPacketDirection,
                                @NonNull Class<? extends NettyPacket> nettyPacketClass,
 
-                               int nettyPacketId) {
+                               T nettyPacketId) {
+
+        if (nettyPacketDirection == NettyPacketDirection.TO_ALL) {
+
+            registerPacket(NettyPacketDirection.TO_SERVER, nettyPacketClass, nettyPacketId);
+            registerPacket(NettyPacketDirection.TO_CLIENT, nettyPacketClass, nettyPacketId);
+            return;
+        }
+
+        packetMap.get(nettyPacketDirection).put(nettyPacketClass, nettyPacketId);
+    }
+
+    /**
+     * Зарегистрировать пакет в маппере
+     *
+     * @param nettyPacketDirection - директория пакета
+     * @param nettyPacketClass - класс регистрируемого пакета
+     */
+    public void registerPacket(@NonNull NettyPacketDirection nettyPacketDirection,
+                               @NonNull Class<? extends NettyPacket> nettyPacketClass,
+
+                               ResponseHandler<T, Class<? extends NettyPacket>> packetKeyHandler) {
+
+        T nettyPacketId = packetKeyHandler.handleResponse(nettyPacketClass);
 
         if (nettyPacketDirection == NettyPacketDirection.TO_ALL) {
 
@@ -49,7 +73,7 @@ public final class NettyPacketMapper {
      * @param nettyPacketDirection - директория пакета
      * @param nettyPacketId - номер получаемого пакета
      */
-    public NettyPacket getNettyPacket(@NonNull NettyPacketDirection nettyPacketDirection, int nettyPacketId) {
+    public NettyPacket getNettyPacket(@NonNull NettyPacketDirection nettyPacketDirection, T nettyPacketId) {
         Class<? extends NettyPacket> packetClass = packetMap.get(nettyPacketDirection).inverse().get(nettyPacketId);
 
         if (packetClass == null) {
@@ -93,7 +117,7 @@ public final class NettyPacketMapper {
      *
      * @param nettyPacketId - номер пакета
      */
-    public boolean hasNettyPacketById(NettyPacketDirection nettyPacketDirection, int nettyPacketId) {
+    public boolean hasNettyPacketById(NettyPacketDirection nettyPacketDirection, T nettyPacketId) {
         return packetMap.get(nettyPacketDirection).containsValue(nettyPacketId);
     }
 

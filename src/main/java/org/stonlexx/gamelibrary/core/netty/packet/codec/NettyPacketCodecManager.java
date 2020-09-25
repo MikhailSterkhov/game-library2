@@ -13,8 +13,8 @@ public final class NettyPacketCodecManager {
     private NettyPacketDirection decodePacketDirection = NettyPacketDirection.TO_SERVER,
                                  encodePacketDirection = NettyPacketDirection.TO_CLIENT;
 
-    @Setter
-    private NettyPacketTyping nettyPacketTyping = NettyPacketTyping.getPacketTyping("play");
+    private NettyPacketTyping<Integer> packetTypingByInteger = NettyPacketTyping.getPacketTyping(int.class, "default");
+    private NettyPacketTyping<String> packetTypingByString = NettyPacketTyping.getPacketTyping(String.class, "default");
 
 
     /**
