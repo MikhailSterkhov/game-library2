@@ -35,7 +35,7 @@ public class ServerStarter {
                 .registerPacket(NettyPacketDirection.TO_CLIENT, TestPacket.class)
                 .registerPacket(NettyPacketDirection.TO_SERVER, TestPacket.class)
 
-                .bindNettyServer();
+                .bindServer();
     }
 
 }

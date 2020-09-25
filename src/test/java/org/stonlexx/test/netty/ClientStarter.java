@@ -11,7 +11,7 @@ import org.stonlexx.test.bean.TestPlayer;
 public class ClientStarter {
 
     public static void main(String[] args) {
-        NettyClientBuilder.newServerBuilder("localhost", 1337, String.class)
+        NettyClientBuilder.newClientBuilder("localhost", 1337, String.class)
 
                 .futureListener((channelFuture, isSuccess) -> {
                     if (isSuccess) {
