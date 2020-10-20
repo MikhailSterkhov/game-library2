@@ -15,6 +15,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -196,5 +197,29 @@ public class BaseFrame {
         return baseFrameComponent.getSwingComponent();
     }
 
+    /**
+     * Очистить окно от компонентов
+     */
+    public void clear() {
+        Arrays.asList(frameImplementation.getComponents()).forEach(frameImplementation::remove);
+    }
+
+    /**
+     * Установить фон для окна
+     *
+     * @param color - цвет окна
+     */
+    public void setBackground(@NonNull Color color) {
+        frameImplementation.setBackground(color);
+    }
+
+    /**
+     * Установить фон для окна
+     *
+     * @param imageIcon - фон окна
+     */
+    public void setBackground(@NonNull ImageIcon imageIcon) {
+        frameImplementation.setBackgroundImage(imageIcon);
+    }
 
 }

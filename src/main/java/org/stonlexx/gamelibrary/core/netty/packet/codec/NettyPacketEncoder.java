@@ -7,16 +7,17 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.NonNull;
 import org.stonlexx.gamelibrary.GameLibrary;
 import org.stonlexx.gamelibrary.core.netty.NettyManager;
+import org.stonlexx.gamelibrary.core.netty.packet.AbstractNettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacketHandleData;
 import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
+import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketTyping;
 import org.stonlexx.gamelibrary.utility.JsonUtil;
 
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Map;
 
-public abstract class NettyPacketEncoder
+public class NettyPacketEncoder
         extends MessageToByteEncoder<NettyPacket> {
 
 
@@ -28,12 +29,20 @@ public abstract class NettyPacketEncoder
      * @param nettyPacket - пакет
      * @param nettyPacketId - номер пакета
      */
-    public abstract void encode(@NonNull Channel channel,
-                                @NonNull NettyPacketBuffer nettyPacketBuffer,
+    public void encode(@NonNull Channel channel,
+                       @NonNull NettyPacketBuffer nettyPacketBuffer,
 
-                                @NonNull NettyPacket nettyPacket,
-                                @NonNull Object nettyPacketId)
-            throws IOException;
+                       @NonNull NettyPacket nettyPacket,
+                       @NonNull Object nettyPacketId) {
+
+        nettyPacket.writePacket(nettyPacketBuffer);
+
+        if (nettyPacket instanceof AbstractNettyPacket) {
+            AbstractNettyPacket abstractNettyPacket = ((AbstractNettyPacket) nettyPacket);
+
+            writeHandleData(abstractNettyPacket.getPacketHandleData(), nettyPacketBuffer);
+        }
+    }
 
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, NettyPacket nettyPacket, ByteBuf byteBuf) throws Exception {
@@ -47,6 +56,8 @@ public abstract class NettyPacketEncoder
         if (nettyPacketId == null) {
             throw new NullPointerException("Packet id of " + nettyPacket.getClass().getSimpleName() + " not found!");
         }
+
+        NettyPacketTyping nettyPacketTyping = nettyManager.findTypingByNettyPacket(nettyManager.getPacketCodecManager().getEncodePacketDirection(), nettyPacket.getClass());
 
         nettyPacketBuffer.writeString(nettyPacketId.getClass().getName());
         nettyPacketBuffer.writeString(JsonUtil.toJson(nettyPacketId));

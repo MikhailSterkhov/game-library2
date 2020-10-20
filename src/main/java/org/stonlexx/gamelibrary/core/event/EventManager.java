@@ -48,7 +48,6 @@ public final class EventManager {
         List<Method> methodList = Arrays.asList(coreEventListener.getClass().getMethods());
 
         methodList.forEach(method -> {
-
             if (method.getDeclaredAnnotation(EventHandler.class) == null) {
                 return;
             }

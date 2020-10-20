@@ -1,5 +1,6 @@
 package org.stonlexx.gamelibrary.core.netty;
 
+import io.netty.channel.Channel;
 import lombok.Getter;
 import lombok.NonNull;
 import org.stonlexx.gamelibrary.core.netty.bootstrap.NettyBootstrap;
@@ -14,9 +15,33 @@ import java.util.Collection;
 @Getter
 public final class NettyManager {
 
-    private final NettyBootstrap nettyBootstrap = new NettyBootstrap();
-    private final NettyPacketCodecManager packetCodecManager = new NettyPacketCodecManager();
+    private final NettyBootstrap nettyBootstrap                 = new NettyBootstrap();
+    private final NettyPacketCodecManager packetCodecManager    = new NettyPacketCodecManager();
 
+    private Channel savedChannel;
+
+
+    /**
+     * Сохранить успешно подключенный канал
+     *
+     * @param channel - канал
+     */
+    public void saveChannel(Channel channel) {
+        if (channel != null && (!channel.isActive() || !channel.isOpen())) {
+            return;
+        }
+
+        this.savedChannel = channel;
+    }
+
+    /**
+     * Отправить пакет сохраненному каналу
+     *
+     * @param nettyPacket - пакет
+     */
+    public void sendPacket(@NonNull NettyPacket nettyPacket) {
+        savedChannel.writeAndFlush(nettyPacket);
+    }
 
     /**
      * Создать (если не существет) и получить
@@ -25,7 +50,7 @@ public final class NettyManager {
      * @param typingName - название типизации
      */
     public <T> NettyPacketTyping<T> getPacketTyping(Class<T> packetKeyClass, String typingName) {
-        return NettyPacketTyping.getPacketTyping(packetKeyClass, typingName);
+        return NettyPacketTyping.createPacketTyping(packetKeyClass, typingName);
     }
 
     /**
@@ -112,6 +137,29 @@ public final class NettyManager {
             NettyPacketMapper<T> nettyPacketMapper = (NettyPacketMapper<T>) nettyPacketTyping.getPacketMapper();
 
             if (nettyPacketMapper.hasNettyPacket(nettyPacketDirection, nettyPacketClass)) {
+                return (NettyPacketTyping<T>) nettyPacketTyping;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Получить типизацию пакета по
+     * классу этого пакета
+     *
+     * @param nettyPacketDirection - директория пакета
+     * @param nettyPacketId        - номер пакета
+     */
+    public <T> NettyPacketTyping<T> findTypingByNettyPacket(@NonNull NettyPacketDirection nettyPacketDirection,
+                                                            @NonNull T nettyPacketId) {
+
+        Collection<NettyPacketTyping<?>> nettyPacketTypingCollection = NettyPacketTyping.getPacketTypingMap().values();
+
+        for (NettyPacketTyping<?> nettyPacketTyping : nettyPacketTypingCollection) {
+            NettyPacketMapper<T> nettyPacketMapper = (NettyPacketMapper<T>) nettyPacketTyping.getPacketMapper();
+
+            if (nettyPacketMapper.hasNettyPacketById(nettyPacketDirection, nettyPacketId)) {
                 return (NettyPacketTyping<T>) nettyPacketTyping;
             }
         }

@@ -7,16 +7,18 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.NonNull;
 import org.stonlexx.gamelibrary.GameLibrary;
 import org.stonlexx.gamelibrary.core.netty.NettyManager;
+import org.stonlexx.gamelibrary.core.netty.packet.AbstractNettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacketHandleData;
 import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
+import org.stonlexx.gamelibrary.core.netty.packet.mapping.NettyPacketMapper;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketTyping;
 import org.stonlexx.gamelibrary.utility.JsonUtil;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
-public abstract class NettyPacketDecoder
+public class NettyPacketDecoder
         extends ByteToMessageDecoder {
 
     /**
@@ -27,23 +29,42 @@ public abstract class NettyPacketDecoder
      * @param nettyPacket - пакет
      * @param nettyPacketId - номер пакета
      */
-    public abstract void decode(@NonNull Channel channel,
-                                @NonNull NettyPacketBuffer nettyPacketBuffer,
+    public void decode(@NonNull Channel channel,
+                       @NonNull NettyPacketBuffer nettyPacketBuffer,
 
-                                @NonNull NettyPacket nettyPacket,
-                                @NonNull Object nettyPacketId)
-            throws IOException;
+                       @NonNull NettyPacket nettyPacket,
+                       @NonNull Object nettyPacketId) {
+
+        nettyPacket.readPacket(nettyPacketBuffer);
+
+        try {
+            if (nettyPacket instanceof AbstractNettyPacket) {
+                AbstractNettyPacket abstractNettyPacket = ((AbstractNettyPacket) nettyPacket);
+                NettyPacketHandleData nettyPacketHandleData = readHandleData(nettyPacketBuffer);
+
+                abstractNettyPacket.setPacketHandleData(nettyPacketHandleData);
+            }
+        }
+
+        catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
 
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> handleList) throws Exception {
-        Channel channel = channelHandlerContext.channel();
-
-        NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
-        NettyPacketTyping<Object> nettyPacketTyping = nettyManager.getPacketCodecManager().getNettyPacketTyping();
-
         NettyPacketBuffer nettyPacketBuffer = new NettyPacketBuffer(byteBuf);
 
-        Object nettyPacketId = nettyPacketBuffer.readVarInt();
+        Channel channel = channelHandlerContext.channel();
+
+        String packetIdClassName = nettyPacketBuffer.readString();
+        String packetIdJson = nettyPacketBuffer.readString();
+
+        Class<?> packetIdClass = Class.forName(packetIdClassName);
+        Object nettyPacketId = JsonUtil.fromJson(packetIdJson, packetIdClass);
+
+        NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
+        NettyPacketTyping nettyPacketTyping = nettyManager.findTypingByNettyPacket(nettyManager.getPacketCodecManager().getDecodePacketDirection(), nettyPacketId);
 
         NettyPacket nettyPacket = nettyPacketTyping.getNettyPacket(nettyManager.getPacketCodecManager().getDecodePacketDirection(), nettyPacketId);
 

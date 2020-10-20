@@ -127,13 +127,13 @@ public class BaseFrameImplementation extends JFrame {
     public void setTitle(String title) {
         super.setTitle(title);
 
-        reloadFrame();
+        revisibleFrame();
     }
 
     /**
      * Перепоказать окно
      */
-    public void reloadFrame() {
+    public void revisibleFrame() {
         setVisible(false);
         setVisible(true);
     }

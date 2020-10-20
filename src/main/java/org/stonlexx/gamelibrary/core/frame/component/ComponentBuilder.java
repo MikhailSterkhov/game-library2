@@ -19,6 +19,8 @@ public class ComponentBuilder<C extends JComponent> {
 
     private final C swingComponent;
 
+    private Color backgroundColor;
+
     private TimeUnit updaterTimeUnit;
     private BiConsumer<C, ComponentBuilder<C>> componentAcceptable;
 
@@ -119,6 +121,18 @@ public class ComponentBuilder<C extends JComponent> {
         return this;
     }
 
+    public ComponentBuilder<C> alignmentX(float alignmentX) {
+        swingComponent.setAlignmentX(alignmentX);
+
+        return this;
+    }
+
+    public ComponentBuilder<C> alignmentY(float alignmentY) {
+        swingComponent.setAlignmentY(alignmentY);
+
+        return this;
+    }
+
     public ComponentBuilder<C> size(Dimension dimension) {
         swingComponent.setSize(dimension);
 
@@ -132,7 +146,7 @@ public class ComponentBuilder<C extends JComponent> {
     }
 
     public ComponentBuilder<C> background(@NonNull Color backgroundColor) {
-        swingComponent.setBackground(backgroundColor);
+        this.backgroundColor = backgroundColor;
 
         return this;
     }
@@ -194,10 +208,16 @@ public class ComponentBuilder<C extends JComponent> {
 
         baseFrameComponent.setComponentAcceptable(componentAcceptable);
 
+        baseFrameComponent.getSwingPanel().setBackground(backgroundColor);
+        baseFrameComponent.getSwingPanel().setAlignmentX(swingComponent.getAlignmentX());
+        baseFrameComponent.getSwingPanel().setAlignmentY(swingComponent.getAlignmentY());
+
+        swingComponent.setAlignmentX(0);
+        swingComponent.setAlignmentY(0);
+
         if (updaterTimeUnit != null) {
             baseFrameComponent.startAutoUpdate(updaterTimeUnit, updaterPeriod);
         }
-
 
         return baseFrameComponent;
     }

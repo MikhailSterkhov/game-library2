@@ -1,5 +1,6 @@
 package org.stonlexx.gamelibrary.core.netty.builder;
 
+import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
@@ -15,6 +16,7 @@ import org.stonlexx.gamelibrary.core.netty.bootstrap.NettyBootstrap;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketTyping;
+import org.stonlexx.gamelibrary.core.netty.reconnect.client.AbstractNettyClientInactive;
 
 import java.net.InetSocketAddress;
 import java.util.function.BiConsumer;
@@ -30,22 +32,29 @@ public class NettyServerBuilder<K> {
     private NettyPacketTyping<K> nettyPacketTyping;
     private ChannelFutureListener channelFutureListener;
     private ChannelInitializer<NioSocketChannel> channelInitializer;
+    private AbstractNettyClientInactive nettyClientInactive;
 
-    private Object[] bootstrapAttributes = new Object[0];
+    private boolean hasStandardCodec = false;
 
 
-    private final NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
-    private final NettyBootstrap nettyBootstrap = nettyManager.getNettyBootstrap();
+    private final static NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
+    private final static NettyBootstrap nettyBootstrap = nettyManager.getNettyBootstrap();
 
 
 // ================================================================================================================== //
+
+    public static <K> NettyServerBuilder<K> newLocalServerBuilder(@NonNull int serverPort,
+                                                                  @NonNull Class<K> packetKeyClass) {
+
+        return newServerBuilder("localhost", serverPort, packetKeyClass);
+    }
 
     public static <K> NettyServerBuilder<K> newServerBuilder(@NonNull String serverHost,
                                                              @NonNull int serverPort,
 
                                                              @NonNull Class<K> packetKeyClass) {
         InetSocketAddress inetSocketAddress
-                = InetSocketAddress.createUnresolved(serverHost, serverPort);
+                = new InetSocketAddress(serverHost, serverPort);
 
         return newServerBuilder(inetSocketAddress, packetKeyClass);
     }
@@ -55,7 +64,12 @@ public class NettyServerBuilder<K> {
                                                              @NonNull Class<K> packetKeyClass) {
 
         NettyServerBuilder<K> nettyServerBuilder = new NettyServerBuilder<>(inetSocketAddress, packetKeyClass);
-        nettyServerBuilder.nettyPacketTyping = NettyPacketTyping.getPacketTyping(packetKeyClass, RandomStringUtils.randomAlphabetic(16));
+        nettyServerBuilder.nettyPacketTyping = NettyPacketTyping.createPacketTyping(packetKeyClass, RandomStringUtils.randomAlphabetic(16));
+
+        NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
+
+        nettyManager.getPacketCodecManager().setDecodePacketDirection(NettyPacketDirection.TO_SERVER);
+        nettyManager.getPacketCodecManager().setEncodePacketDirection(NettyPacketDirection.TO_CLIENT);
 
         return nettyServerBuilder;
     }
@@ -70,7 +84,6 @@ public class NettyServerBuilder<K> {
      * @param packetTypingConsumer - обработчик применения изменений
      */
     public NettyServerBuilder<K> acceptPacketTyping(@NonNull Consumer<NettyPacketTyping<K>> packetTypingConsumer) {
-
         packetTypingConsumer.accept(nettyPacketTyping);
         return this;
     }
@@ -79,8 +92,8 @@ public class NettyServerBuilder<K> {
      * Зарегистрировать пакет в созданном {@link NettyPacketTyping}
      *
      * @param nettyPacketDirection - директория пакета
-     * @param nettyPacketClass - класс регистрируемого пакета
-     * @param packetKeyId - ключ, по которому пакет регистрируется
+     * @param nettyPacketClass     - класс регистрируемого пакета
+     * @param packetKeyId          - ключ, по которому пакет регистрируется
      */
     public NettyServerBuilder<K> registerPacket(@NonNull NettyPacketDirection nettyPacketDirection,
 
@@ -96,7 +109,7 @@ public class NettyServerBuilder<K> {
      * с автоопределением ключа для регистрации
      *
      * @param nettyPacketDirection - директория пакета
-     * @param nettyPacketClass - класс регистрируемого пакета
+     * @param nettyPacketClass     - класс регистрируемого пакета
      */
     public NettyServerBuilder<K> registerPacket(@NonNull NettyPacketDirection nettyPacketDirection,
                                                 @NonNull Class<? extends NettyPacket> nettyPacketClass) {
@@ -106,12 +119,24 @@ public class NettyServerBuilder<K> {
     }
 
     /**
-     * Указать атрибуты в ныне созданном
-     * канале после бинда порта сервера
+     * Установить серверу стандартные кодеки
+     * пакетов от GameLibrary2
      */
-    public NettyServerBuilder<K> bootstrapAttributes(@NonNull Object... bootstrapAttributes) {
+    public NettyServerBuilder<K> standardCodec() {
 
-        this.bootstrapAttributes = bootstrapAttributes;
+        this.hasStandardCodec = true;
+        return this;
+    }
+
+    /**
+     * Установить обработчик отключения
+     * клиентов от сервера
+     *
+     * @param nettyClientInactive - обработчик отключения
+     */
+    public NettyServerBuilder<K> clientInactive(@NonNull AbstractNettyClientInactive nettyClientInactive) {
+
+        this.nettyClientInactive = nettyClientInactive;
         return this;
     }
 
@@ -130,7 +155,6 @@ public class NettyServerBuilder<K> {
      * @param channelFutureListener - Слушатель результата
      */
     public NettyServerBuilder<K> futureListener(@NonNull ChannelFutureListener channelFutureListener) {
-
         this.channelFutureListener = channelFutureListener;
         return this;
     }
@@ -141,7 +165,7 @@ public class NettyServerBuilder<K> {
      * @param channelConsumer - обработчик канала
      */
     public NettyServerBuilder<K> channelInitializer(Consumer<NioSocketChannel> channelConsumer) {
-        return channelInitializer(nettyBootstrap.createChannelInitializer(channelConsumer));
+        return channelInitializer(nettyBootstrap.createChannelInitializer(channelConsumer, null, nettyClientInactive, hasStandardCodec));
     }
 
     /**
@@ -150,7 +174,6 @@ public class NettyServerBuilder<K> {
      * @param channelInitializer - обработчик канала
      */
     public NettyServerBuilder<K> channelInitializer(@NonNull ChannelInitializer<NioSocketChannel> channelInitializer) {
-
         this.channelInitializer = channelInitializer;
         return this;
     }
@@ -162,10 +185,8 @@ public class NettyServerBuilder<K> {
      * биндом порт сервера, вызывая указанные
      * слушатели и приводя в работу обработчики
      */
-    public void bindServer() {
-        nettyBootstrap.createServerBootstrap(
-                inetSocketAddress, channelFutureListener, channelInitializer, bootstrapAttributes
-        );
+    public ServerBootstrap bindServer() {
+        return nettyBootstrap.createServerBootstrap(inetSocketAddress, channelFutureListener, channelInitializer);
     }
 
 }

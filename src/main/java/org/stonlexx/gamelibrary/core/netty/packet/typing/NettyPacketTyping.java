@@ -13,7 +13,10 @@ import java.util.Map;
 public class NettyPacketTyping<T> {
 
     private final String typingName;
-    private final NettyPacketMapper<T> packetMapper = new NettyPacketMapper<T>();
+
+
+    public NettyPacketMapper<T> packetMapper = new NettyPacketMapper<>();
+    private Class<T> packetKeyClass;
 
     @Setter
     private ResponseHandler<T, Class<? extends NettyPacket>> packetKeyHandler;
@@ -24,19 +27,21 @@ public class NettyPacketTyping<T> {
     @Getter
     private static final Map<String, NettyPacketTyping<?>> packetTypingMap = new HashMap<>();
 
-    public static <T> NettyPacketTyping<T> getPacketTyping(@NonNull Class<T> packetKeyClass,
-                                                           @NonNull String typingName) {
 
-        return getPacketTyping(packetKeyClass, typingName, null);
+    public static <T> NettyPacketTyping<T> createPacketTyping(@NonNull Class<T> packetKeyClass,
+                                                              @NonNull String typingName) {
+
+        return createPacketTyping(packetKeyClass, typingName, null);
     }
 
-    public static <T> NettyPacketTyping<T> getPacketTyping(@NonNull Class<T> packetKeyClass,
-                                                           @NonNull String typingName,
+    public static <T> NettyPacketTyping<T> createPacketTyping(@NonNull Class<T> packetKeyClass,
+                                                              @NonNull String typingName,
 
-                                                           ResponseHandler<T, Class<? extends NettyPacket>> packetKeyHandler) {
+                                                              ResponseHandler<T, Class<? extends NettyPacket>> packetKeyHandler) {
 
         NettyPacketTyping<T> nettyPacketTyping = (NettyPacketTyping<T>) packetTypingMap.computeIfAbsent(typingName.toLowerCase(), NettyPacketTyping::new);
         nettyPacketTyping.packetKeyHandler = packetKeyHandler;
+        nettyPacketTyping.packetKeyClass = packetKeyClass;
 
         return nettyPacketTyping;
     }
