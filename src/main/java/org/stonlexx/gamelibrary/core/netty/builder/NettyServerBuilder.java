@@ -16,9 +16,13 @@ import org.stonlexx.gamelibrary.core.netty.bootstrap.NettyBootstrap;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketTyping;
-import org.stonlexx.gamelibrary.core.netty.reconnect.client.AbstractNettyClientInactive;
+import org.stonlexx.gamelibrary.core.netty.handler.client.active.AbstractNettyClientActive;
+import org.stonlexx.gamelibrary.core.netty.handler.client.inactive.AbstractNettyClientInactive;
 
 import java.net.InetSocketAddress;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -32,9 +36,11 @@ public class NettyServerBuilder<K> {
     private NettyPacketTyping<K> nettyPacketTyping;
     private ChannelFutureListener channelFutureListener;
     private ChannelInitializer<NioSocketChannel> channelInitializer;
-    private AbstractNettyClientInactive nettyClientInactive;
 
-    private boolean hasStandardCodec = false;
+    private final Collection<AbstractNettyClientInactive> nettyClientInactiveCollection = Collections.synchronizedCollection(new LinkedHashSet<>());
+    private final Collection<AbstractNettyClientActive> nettyClientActiveCollection = Collections.synchronizedCollection(new LinkedHashSet<>());
+
+    private boolean standardCodec = false;
 
 
     private final static NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
@@ -124,19 +130,29 @@ public class NettyServerBuilder<K> {
      */
     public NettyServerBuilder<K> standardCodec() {
 
-        this.hasStandardCodec = true;
+        this.standardCodec = true;
         return this;
     }
 
     /**
-     * Установить обработчик отключения
+     * Добавить обработчик отключения
      * клиентов от сервера
      *
      * @param nettyClientInactive - обработчик отключения
      */
     public NettyServerBuilder<K> clientInactive(@NonNull AbstractNettyClientInactive nettyClientInactive) {
+        nettyClientInactiveCollection.add(nettyClientInactive);
+        return this;
+    }
 
-        this.nettyClientInactive = nettyClientInactive;
+    /**
+     * Добавить обработчик подключения
+     * клиентов к серверу
+     *
+     * @param nettyClientActive - обработчик подключения
+     */
+    public NettyServerBuilder<K> clientActive(@NonNull AbstractNettyClientActive nettyClientActive) {
+        nettyClientActiveCollection.add(nettyClientActive);
         return this;
     }
 
@@ -165,7 +181,7 @@ public class NettyServerBuilder<K> {
      * @param channelConsumer - обработчик канала
      */
     public NettyServerBuilder<K> channelInitializer(Consumer<NioSocketChannel> channelConsumer) {
-        return channelInitializer(nettyBootstrap.createChannelInitializer(channelConsumer, null, nettyClientInactive, hasStandardCodec));
+        return channelInitializer(nettyBootstrap.createServerChannelInitializer(channelConsumer, nettyClientActiveCollection, nettyClientInactiveCollection, standardCodec));
     }
 
     /**
@@ -186,6 +202,14 @@ public class NettyServerBuilder<K> {
      * слушатели и приводя в работу обработчики
      */
     public ServerBootstrap bindServer() {
+        if (channelInitializer == null) {
+            channelInitializer((Consumer<NioSocketChannel>) null);
+        }
+
+        if (channelFutureListener == null) {
+            futureListener((ChannelFutureListener) null);
+        }
+
         return nettyBootstrap.createServerBootstrap(inetSocketAddress, channelFutureListener, channelInitializer);
     }
 

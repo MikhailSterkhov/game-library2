@@ -11,11 +11,9 @@ import org.stonlexx.gamelibrary.core.netty.packet.AbstractNettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacketHandleData;
 import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
-import org.stonlexx.gamelibrary.core.netty.packet.mapping.NettyPacketMapper;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketTyping;
 import org.stonlexx.gamelibrary.utility.JsonUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class NettyPacketDecoder
@@ -64,7 +62,9 @@ public class NettyPacketDecoder
         Object nettyPacketId = JsonUtil.fromJson(packetIdJson, packetIdClass);
 
         NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
-        NettyPacketTyping nettyPacketTyping = nettyManager.findTypingByNettyPacket(nettyManager.getPacketCodecManager().getDecodePacketDirection(), nettyPacketId);
+
+        NettyPacketTyping nettyPacketTyping
+                = nettyManager.findTypingByNettyPacket(nettyManager.getPacketCodecManager().getDecodePacketDirection(), nettyPacketId);
 
         NettyPacket nettyPacket = nettyPacketTyping.getNettyPacket(nettyManager.getPacketCodecManager().getDecodePacketDirection(), nettyPacketId);
 

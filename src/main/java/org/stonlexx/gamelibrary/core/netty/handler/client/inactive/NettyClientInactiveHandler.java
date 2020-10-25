@@ -1,20 +1,22 @@
-package org.stonlexx.gamelibrary.core.netty.reconnect.client;
+package org.stonlexx.gamelibrary.core.netty.handler.client.inactive;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
+import java.util.Collection;
 
 @RequiredArgsConstructor
 public class NettyClientInactiveHandler extends ChannelInboundHandlerAdapter {
 
-    private final AbstractNettyClientInactive nettyClientInactive;
+    private final Collection<AbstractNettyClientInactive> nettyClientInactiveCollection;
 
 
     @Override
     public void channelInactive(ChannelHandlerContext channelHandlerContext) {
-        nettyClientInactive.onClientInactive(channelHandlerContext.channel());
+        for (AbstractNettyClientInactive nettyClientInactive : nettyClientInactiveCollection)
+            nettyClientInactive.onClientInactive(channelHandlerContext.channel());
     }
 
     @Override

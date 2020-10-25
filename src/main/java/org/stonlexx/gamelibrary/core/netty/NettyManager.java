@@ -181,7 +181,6 @@ public final class NettyManager {
         }
 
         NettyPacketMapper<T> nettyPacketMapper = nettyPacketTyping.getPacketMapper();
-
         return nettyPacketMapper.getPacketMap().get(nettyPacketDirection).get(nettyPacketClass);
     }
 

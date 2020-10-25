@@ -13,12 +13,16 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.stonlexx.gamelibrary.GameLibrary;
 import org.stonlexx.gamelibrary.core.netty.NettyManager;
 import org.stonlexx.gamelibrary.core.netty.bootstrap.NettyBootstrap;
-import org.stonlexx.gamelibrary.core.netty.reconnect.server.AbstractNettyReconnect;
+import org.stonlexx.gamelibrary.core.netty.handler.server.active.AbstractNettyServerActive;
+import org.stonlexx.gamelibrary.core.netty.handler.server.reconnect.AbstractNettyReconnect;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketTyping;
 
 import java.net.InetSocketAddress;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -34,7 +38,9 @@ public class NettyClientBuilder<K> {
     private ChannelInitializer<NioSocketChannel> channelInitializer;
     private AbstractNettyReconnect nettyReconnect;
 
-    private boolean hasStandardCodec = false;
+    private final Collection<AbstractNettyServerActive> nettyServerActiveCollection = Collections.synchronizedCollection(new LinkedHashSet<>());
+
+    private boolean standardCodec = false;
 
 
     private final NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
@@ -124,7 +130,7 @@ public class NettyClientBuilder<K> {
      */
     public NettyClientBuilder<K> standardCodec() {
 
-        this.hasStandardCodec = true;
+        this.standardCodec = true;
         return this;
     }
 
@@ -155,7 +161,7 @@ public class NettyClientBuilder<K> {
      * @param channelConsumer - обработчик канала
      */
     public NettyClientBuilder<K> channelInitializer(Consumer<NioSocketChannel> channelConsumer) {
-        return channelInitializer(nettyBootstrap.createChannelInitializer(channelConsumer, nettyReconnect, null, hasStandardCodec));
+        return channelInitializer(nettyBootstrap.createClientChannelInitializer(channelConsumer, nettyReconnect, nettyServerActiveCollection, standardCodec));
     }
 
     /**
@@ -179,6 +185,17 @@ public class NettyClientBuilder<K> {
         return this;
     }
 
+    /**
+     * Добавить обработчик подключения
+     * сервера к клиенту
+     *
+     * @param nettyServerActive - обработчик подключения
+     */
+    public NettyClientBuilder<K> serverActive(@NonNull AbstractNettyServerActive nettyServerActive) {
+        nettyServerActiveCollection.add(nettyServerActive);
+        return this;
+    }
+
 
     /**
      * После указания всех настроек и инициализации
@@ -187,6 +204,14 @@ public class NettyClientBuilder<K> {
      * слушатели и приводя в работу обработчики
      */
     public Bootstrap connectToServer() {
+        if (channelInitializer == null) {
+            channelInitializer((Consumer<NioSocketChannel>) null);
+        }
+
+        if (channelFutureListener == null) {
+            futureListener((ChannelFutureListener) null);
+        }
+
         Bootstrap bootstrap = nettyBootstrap.createClientBootstrap(inetSocketAddress, channelFutureListener, channelInitializer);
 
         if (nettyReconnect != null) {

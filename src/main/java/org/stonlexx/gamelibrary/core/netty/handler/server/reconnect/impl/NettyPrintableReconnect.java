@@ -1,8 +1,8 @@
-package org.stonlexx.gamelibrary.core.netty.reconnect.server.impl;
+package org.stonlexx.gamelibrary.core.netty.handler.server.reconnect.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.stonlexx.gamelibrary.GameLibrary;
-import org.stonlexx.gamelibrary.core.netty.reconnect.server.AbstractNettyReconnect;
+import org.stonlexx.gamelibrary.core.netty.handler.server.reconnect.AbstractNettyReconnect;
 
 @RequiredArgsConstructor
 public class NettyPrintableReconnect extends AbstractNettyReconnect {

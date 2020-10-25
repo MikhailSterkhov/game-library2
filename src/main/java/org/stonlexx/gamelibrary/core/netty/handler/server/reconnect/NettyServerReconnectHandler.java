@@ -1,4 +1,4 @@
-package org.stonlexx.gamelibrary.core.netty.reconnect.server;
+package org.stonlexx.gamelibrary.core.netty.handler.server.reconnect;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -18,9 +18,10 @@ public class NettyServerReconnectHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext channelHandlerContext) {
-        if (exceptionSession == null && (System.currentTimeMillis() - exceptionSession.sessionMillis) > 1000) {
-            exceptionSession.throwable.printStackTrace();
+        if (exceptionSession != null && (System.currentTimeMillis() - exceptionSession.sessionMillis) > 1000) {
 
+            exceptionSession.throwable.printStackTrace();
+            exceptionSession = null;
             return;
         }
 

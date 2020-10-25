@@ -1,4 +1,4 @@
-package org.stonlexx.test.netty;
+package org.stonlexx.test.netty.packet;
 
 import io.netty.channel.Channel;
 import org.stonlexx.gamelibrary.GameLibrary;
@@ -6,7 +6,7 @@ import org.stonlexx.gamelibrary.core.netty.packet.AbstractNettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
 import org.stonlexx.gamelibrary.utility.location.PointLocation;
 
-public class TestPacket extends AbstractNettyPacket {
+public class StringTestPacket extends AbstractNettyPacket {
 
     @Override
     public void writePacket(NettyPacketBuffer packetBuffer) {

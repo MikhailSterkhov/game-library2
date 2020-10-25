@@ -5,7 +5,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.stonlexx.gamelibrary.GameLibrary;
 
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 public class BaseUpdater {
 
@@ -20,6 +19,6 @@ public class BaseUpdater {
                            @NonNull TimeUnit timeUnit, long period) {
 
         GameLibrary.getInstance().getSchedulerManager()
-                .runTimer(RandomStringUtils.randomAlphabetic(255), runnable, period, period, timeUnit);
+                .runTimer(RandomStringUtils.randomAlphabetic(256), runnable, period, period, timeUnit);
     }
 }

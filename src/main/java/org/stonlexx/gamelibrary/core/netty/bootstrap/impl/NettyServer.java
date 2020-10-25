@@ -1,0 +1,221 @@
+package org.stonlexx.gamelibrary.core.netty.bootstrap.impl;
+
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.stonlexx.gamelibrary.GameLibrary;
+import org.stonlexx.gamelibrary.core.netty.NettyManager;
+import org.stonlexx.gamelibrary.core.netty.bootstrap.NettyBootstrapChannel;
+import org.stonlexx.gamelibrary.core.netty.builder.NettyServerBuilder;
+import org.stonlexx.gamelibrary.core.netty.handler.client.active.AbstractNettyClientActive;
+import org.stonlexx.gamelibrary.core.netty.handler.client.active.impl.NettyConsumerClientActive;
+import org.stonlexx.gamelibrary.core.netty.handler.client.inactive.AbstractNettyClientInactive;
+import org.stonlexx.gamelibrary.core.netty.handler.client.inactive.impl.NettyConsumerClientInactive;
+import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
+import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
+import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketTyping;
+import org.stonlexx.gamelibrary.utility.query.ResponseHandler;
+
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
+@RequiredArgsConstructor
+@Getter
+public class NettyServer implements NettyBootstrapChannel {
+
+    protected final InetSocketAddress socketAddress;
+
+    protected ChannelFutureListener channelFutureListener;
+    protected ChannelInitializer<NioSocketChannel> channelInitializer;
+
+    protected boolean standardCodec;
+
+    protected final Collection<AbstractNettyClientInactive> nettyClientInactiveCollection = Collections.synchronizedCollection(new LinkedHashSet<>());
+    protected final Collection<AbstractNettyClientActive> nettyClientActiveCollection = Collections.synchronizedCollection(new LinkedHashSet<>());
+
+
+    protected ServerBootstrap serverBootstrap;
+    protected Channel channel;
+
+    protected final Map<SocketAddress, Channel> clientChannelMap = new LinkedHashMap<>();
+
+
+// ======================================================== // STATIC // ======================================================== //
+
+    protected static final NettyManager NETTY_MANAGER = GameLibrary.getInstance().getNettyManager();
+
+// ============================================================================================================================= //
+
+    {
+        addNettyClientActive(new NettyConsumerClientActive(channel -> clientChannelMap.put(channel.remoteAddress(), channel)));
+        addNettyClientInactive(new NettyConsumerClientInactive(channel -> clientChannelMap.remove(channel.remoteAddress())));
+    }
+
+
+    /**
+     * Установить слушатель создания и
+     * подключения канала
+     *
+     * @param channelFutureConsumer - обработчик слушателя
+     */
+    public void setChannelFutureListener(BiConsumer<ChannelFuture, Boolean> channelFutureConsumer) {
+        this.channelFutureListener = NETTY_MANAGER.getNettyBootstrap().createFutureListener((channelFuture, isSuccess) -> {
+            this.channel = channelFuture.channel();
+
+            if (channelFutureConsumer != null) {
+                channelFutureConsumer.accept(channelFuture, isSuccess);
+            }
+        });
+    }
+
+    /**
+     * Создать инициализатор канала для бинда
+     *
+     * @param channelConsumer - ответ, который возвращает канал
+     */
+    public void setChannelInitializer(Consumer<NioSocketChannel> channelConsumer) {
+        this.channelInitializer = NETTY_MANAGER.getNettyBootstrap().createServerChannelInitializer(channelConsumer, nettyClientActiveCollection, nettyClientInactiveCollection, standardCodec);
+    }
+
+    /**
+     * Добавить обработчик отключения клиентов от сервера
+     *
+     * @param nettyClientInactive - обработчик отключения
+     */
+    public void addNettyClientInactive(@NonNull AbstractNettyClientInactive nettyClientInactive) {
+        nettyClientInactiveCollection.add(nettyClientInactive);
+    }
+
+    /**
+     * Добавить обработчик подключения клиентов к серверу
+     *
+     * @param nettyClientActive - обработчик подключения
+     */
+    public void addNettyClientActive(@NonNull AbstractNettyClientActive nettyClientActive) {
+        nettyClientActiveCollection.add(nettyClientActive);
+    }
+
+    /**
+     * Установить серверу стандартные кодеки
+     * пакетов от GameLibrary2
+     */
+    public void setStandardCodec() {
+        this.standardCodec = true;
+    }
+
+    /**
+     * Применить {@link NettyPacketTyping} для регистрации
+     * новых пакетов и внутренних изменений
+     *
+     * @param packetKeyClass         - класс для указания типа ключей для пакетов
+     * @param packetRegistryConsumer - обработчик регистратора пакетов
+     */
+    public <K> void createPacketRegistry(@NonNull Class<K> packetKeyClass,
+
+                                         ResponseHandler<K, Class<? extends NettyPacket>> packetKeyHandler,
+                                         Consumer<ServerPacketRegistry<K>> packetRegistryConsumer) {
+
+        ServerPacketRegistry<K> serverPacketRegistry = new ServerPacketRegistry<>(
+                packetKeyClass, NettyPacketTyping.createPacketTyping(packetKeyClass, RandomStringUtils.randomAlphabetic(16)));
+
+        if (packetKeyHandler != null) {
+            serverPacketRegistry.nettyPacketTyping.setPacketKeyHandler(packetKeyHandler);
+        }
+
+        if (packetRegistryConsumer != null) {
+            packetRegistryConsumer.accept(serverPacketRegistry);
+        }
+    }
+
+    /**
+     * Отправить пакет на сервер
+     *
+     * @param nettyPacket - пакет
+     */
+    public void sendPacket(@NonNull NettyPacket nettyPacket) {
+        channel.writeAndFlush(nettyPacket);
+    }
+
+    /**
+     * Отправить пакет всем клиентам, подключенным
+     * к серверу
+     *
+     * @param nettyPacket - пакет
+     */
+    public void sendPacketToClients(@NonNull NettyPacket nettyPacket) {
+        for (Channel channel : clientChannelMap.values()) channel.writeAndFlush(nettyPacket);
+    }
+
+
+    /**
+     * После указания всех настроек и инициализации
+     * всех необходимых данных и переменных,
+     * биндом порт сервера, вызывая указанные
+     * слушатели и приводя в работу обработчики
+     */
+    public void bind() {
+        if (channelFutureListener == null) {
+            setChannelFutureListener(null);
+        }
+
+        if (channelInitializer == null) {
+            setChannelInitializer(null);
+        }
+
+        NettyServerBuilder<String> nettyServerBuilder = NettyServerBuilder.newServerBuilder(socketAddress, String.class)
+                .futureListener(channelFutureListener)
+                .channelInitializer(channelInitializer);
+
+        this.serverBootstrap = nettyServerBuilder.bindServer();
+    }
+
+
+    @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+    @Getter
+    public static class ServerPacketRegistry<K> {
+
+        private final Class<K> packetKeyClass;
+        private final NettyPacketTyping<K> nettyPacketTyping;
+
+
+        /**
+         * Зарегистрировать пакет в созданном {@link NettyPacketTyping}
+         *
+         * @param nettyPacketDirection - директория пакета
+         * @param nettyPacketClass     - класс регистрируемого пакета
+         * @param packetKeyId          - ключ, по которому пакет регистрируется
+         */
+        public void registerPacket(@NonNull NettyPacketDirection nettyPacketDirection,
+
+                                   @NonNull Class<? extends NettyPacket> nettyPacketClass,
+                                   @NonNull K packetKeyId) {
+
+            nettyPacketTyping.registerPacket(nettyPacketDirection, nettyPacketClass, packetKeyId);
+        }
+
+        /**
+         * Зарегистрировать пакет в созданном {@link NettyPacketTyping}
+         * с автоопределением ключа для регистрации
+         *
+         * @param nettyPacketDirection - директория пакета
+         * @param nettyPacketClass     - класс регистрируемого пакета
+         */
+        public void registerPacket(@NonNull NettyPacketDirection nettyPacketDirection,
+                                   @NonNull Class<? extends NettyPacket> nettyPacketClass) {
+
+            nettyPacketTyping.registerPacket(nettyPacketDirection, nettyPacketClass);
+        }
+    }
+
+}

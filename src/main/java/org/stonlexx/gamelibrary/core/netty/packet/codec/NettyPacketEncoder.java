@@ -45,7 +45,7 @@ public class NettyPacketEncoder
     }
 
     @Override
-    protected void encode(ChannelHandlerContext channelHandlerContext, NettyPacket nettyPacket, ByteBuf byteBuf) throws Exception {
+    protected void encode(ChannelHandlerContext channelHandlerContext, NettyPacket nettyPacket, ByteBuf byteBuf) {
         Channel channel = channelHandlerContext.channel();
 
         NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
@@ -54,10 +54,8 @@ public class NettyPacketEncoder
         Object nettyPacketId = nettyManager.getNettyPacketId(nettyManager.getPacketCodecManager().getEncodePacketDirection(), nettyPacket.getClass());
 
         if (nettyPacketId == null) {
-            throw new NullPointerException("Packet id of " + nettyPacket.getClass().getSimpleName() + " not found!");
+            throw new NullPointerException("Packet " + nettyPacket.getClass().getSimpleName() + " is not registered!");
         }
-
-        NettyPacketTyping nettyPacketTyping = nettyManager.findTypingByNettyPacket(nettyManager.getPacketCodecManager().getEncodePacketDirection(), nettyPacket.getClass());
 
         nettyPacketBuffer.writeString(nettyPacketId.getClass().getName());
         nettyPacketBuffer.writeString(JsonUtil.toJson(nettyPacketId));

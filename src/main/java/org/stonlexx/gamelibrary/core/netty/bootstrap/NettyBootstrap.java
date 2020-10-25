@@ -13,18 +13,22 @@ import io.netty.util.AttributeKey;
 import lombok.Getter;
 import lombok.NonNull;
 import org.stonlexx.gamelibrary.GameLibrary;
+import org.stonlexx.gamelibrary.core.netty.bootstrap.impl.NettyClient;
+import org.stonlexx.gamelibrary.core.netty.bootstrap.impl.NettyServer;
+import org.stonlexx.gamelibrary.core.netty.handler.client.active.AbstractNettyClientActive;
+import org.stonlexx.gamelibrary.core.netty.handler.client.inactive.AbstractNettyClientInactive;
+import org.stonlexx.gamelibrary.core.netty.handler.client.inactive.NettyClientInactiveHandler;
+import org.stonlexx.gamelibrary.core.netty.handler.server.active.AbstractNettyServerActive;
+import org.stonlexx.gamelibrary.core.netty.handler.server.active.NettyServerActiveHandler;
+import org.stonlexx.gamelibrary.core.netty.handler.server.reconnect.AbstractNettyReconnect;
+import org.stonlexx.gamelibrary.core.netty.handler.server.reconnect.EnumReconnectReason;
+import org.stonlexx.gamelibrary.core.netty.handler.server.reconnect.NettyServerReconnectHandler;
 import org.stonlexx.gamelibrary.core.netty.packet.codec.NettyPacketDecoder;
 import org.stonlexx.gamelibrary.core.netty.packet.codec.NettyPacketEncoder;
 import org.stonlexx.gamelibrary.core.netty.packet.handler.NettyPacketHandler;
-import org.stonlexx.gamelibrary.core.netty.reconnect.client.AbstractNettyClientInactive;
-import org.stonlexx.gamelibrary.core.netty.reconnect.client.NettyClientInactiveHandler;
-import org.stonlexx.gamelibrary.core.netty.reconnect.server.NettyServerReconnectHandler;
-import org.stonlexx.gamelibrary.core.netty.reconnect.server.AbstractNettyReconnect;
-import org.stonlexx.gamelibrary.core.netty.reconnect.server.EnumReconnectReason;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -33,6 +37,12 @@ public final class NettyBootstrap {
 
     private final NioEventLoopGroup bossEventLoop = new NioEventLoopGroup(1);
     private final NioEventLoopGroup workerEventLoop = new NioEventLoopGroup(2);
+
+    @Getter
+    private NettyServer savedNettyServer;
+
+    @Getter
+    private NettyClient savedNettyClient;
 
 
     /**
@@ -111,7 +121,6 @@ public final class NettyBootstrap {
         }
 
         // bind bootstrap, add listener & sync
-
         ChannelFuture channelFuture = serverBootstrap.bind();
 
         if (futureListener != null) {
@@ -155,19 +164,78 @@ public final class NettyBootstrap {
      * @param addressHost - хост адреса
      * @param addressPort - порт адреса
      */
-    public SocketAddress createSocketAddress(String addressHost, int addressPort) {
+    public InetSocketAddress createSocketAddress(String addressHost, int addressPort) {
         return new InetSocketAddress(addressHost, addressPort);
     }
 
     /**
-     * Создать инициализатор канала для подключения
+     * Создать инициализатор серверного канала для подключения
+     *
+     * @param channelConsumer               - ответ, который возвращает канал
+     * @param nettyClientActiveCollection   - список обработчиков подключения клиентов к серверу
+     * @param nettyClientInactiveCollection - список обработчиков отключения клиентов от сервера
+     * @param hasStandardCodec              - разрешение на установку стандартных кодеков
+     */
+    public ChannelInitializer<NioSocketChannel> createServerChannelInitializer(Consumer<NioSocketChannel> channelConsumer,
+                                                                               Collection<AbstractNettyClientActive> nettyClientActiveCollection,
+                                                                               Collection<AbstractNettyClientInactive> nettyClientInactiveCollection,
+
+                                                                               boolean hasStandardCodec) {
+        return createChannelInitializer(channelConsumer, socketChannel -> {
+
+            // bootstrap`s active
+            if (nettyClientActiveCollection != null) {
+                for (AbstractNettyClientActive nettyClientActive : nettyClientActiveCollection) {
+                    nettyClientActive.onClientActive(socketChannel);
+                }
+            }
+
+            // bootstrap`s inactive
+            if (nettyClientInactiveCollection != null && !nettyClientInactiveCollection.isEmpty()) {
+                socketChannel.pipeline().addLast("client-inactive-handler", new NettyClientInactiveHandler(nettyClientInactiveCollection));
+            }
+
+        }, hasStandardCodec);
+    }
+
+    /**
+     * Создать инициализатор клиентского канала для подключения
+     *
+     * @param channelConsumer             - ответ, который возвращает канал
+     * @param nettyReconnect              - обработчик переподключения клиента к серверу при его падении
+     * @param nettyServerActiveCollection - список обработчиков подключения сервера к клиенту
+     * @param hasStandardCodec            - разрешение на установку стандартных кодеков
+     */
+    public ChannelInitializer<NioSocketChannel> createClientChannelInitializer(Consumer<NioSocketChannel> channelConsumer,
+                                                                               AbstractNettyReconnect nettyReconnect,
+                                                                               Collection<AbstractNettyServerActive> nettyServerActiveCollection,
+
+                                                                               boolean hasStandardCodec) {
+        return createChannelInitializer(channelConsumer, socketChannel -> {
+
+            // bootstrap`s active
+            if (nettyServerActiveCollection != null && !nettyServerActiveCollection.isEmpty()) {
+                socketChannel.pipeline().addLast("netty-server-active-handler", new NettyServerActiveHandler(nettyServerActiveCollection));
+            }
+
+            // server reconnect
+            if (nettyReconnect != null) {
+                socketChannel.attr(AttributeKey.valueOf("reconnect-handler")).set(nettyReconnect);
+                socketChannel.pipeline().addLast("reconnect-handler", new NettyServerReconnectHandler(nettyReconnect));
+            }
+
+        }, hasStandardCodec);
+    }
+
+    /**
+     * Создать инициализатор общего канала для подключения
      *
      * @param channelConsumer  - ответ, который возвращает канал
+     * @param systemConsumer   - общий консумер, который обрабатывает данные, зависимые от типа бутстрапа
      * @param hasStandardCodec - разрешение на установку стандартных кодеков
      */
     public ChannelInitializer<NioSocketChannel> createChannelInitializer(Consumer<NioSocketChannel> channelConsumer,
-                                                                         AbstractNettyReconnect nettyReconnect,
-                                                                         AbstractNettyClientInactive nettyClientInactive,
+                                                                         Consumer<NioSocketChannel> systemConsumer,
 
                                                                          boolean hasStandardCodec) {
         return new ChannelInitializer<NioSocketChannel>() {
@@ -175,28 +243,86 @@ public final class NettyBootstrap {
             @Override
             protected void initChannel(NioSocketChannel socketChannel) {
 
+                // check allow to set default codecs by library
                 if (hasStandardCodec) {
                     socketChannel.pipeline().addLast("packet-decoder", new NettyPacketDecoder());
                     socketChannel.pipeline().addLast("packet-encoder", new NettyPacketEncoder());
                 }
 
-                if (nettyReconnect != null) {
-                    socketChannel.pipeline().addLast("reconnect-handler", new NettyServerReconnectHandler(nettyReconnect));
-                    socketChannel.attr(AttributeKey.valueOf("reconnect-handler")).set(nettyReconnect);
-                }
-
-                if (nettyClientInactive != null) {
-                    socketChannel.pipeline().addLast("client-inactive-handler", new NettyClientInactiveHandler(nettyClientInactive));
-                }
-
+                // other handlers
                 socketChannel.pipeline().addLast("packet-handler", new NettyPacketHandler());
 
-                if (channelConsumer != null) {
-                    channelConsumer.accept(socketChannel);
-                }
+                // submit consumers
+                if (channelConsumer != null) channelConsumer.accept(socketChannel);
+                if (systemConsumer != null) systemConsumer.accept(socketChannel);
             }
 
         };
+    }
+
+    /**
+     * Создать инициализатор общего канала для подключения
+     *
+     * @param channelConsumer  - ответ, который возвращает канал
+     * @param hasStandardCodec - разрешение на установку стандартных кодеков
+     */
+    public ChannelInitializer<NioSocketChannel> createChannelInitializer(Consumer<NioSocketChannel> channelConsumer,
+                                                                         boolean hasStandardCodec) {
+        return new ChannelInitializer<NioSocketChannel>() {
+
+            @Override
+            protected void initChannel(NioSocketChannel socketChannel) {
+
+                // check allow to set default codecs by library
+                if (hasStandardCodec) {
+                    socketChannel.pipeline().addLast("packet-decoder", new NettyPacketDecoder());
+                    socketChannel.pipeline().addLast("packet-encoder", new NettyPacketEncoder());
+                }
+
+                // other handlers
+                socketChannel.pipeline().addLast("packet-handler", new NettyPacketHandler());
+
+                // submit consumers
+                if (channelConsumer != null) channelConsumer.accept(socketChannel);
+            }
+
+        };
+    }
+
+    /**
+     * Создать Netty сервер
+     *
+     * @param socketAddress - адрес, по которому создать сервер
+     */
+    public NettyServer createServer(@NonNull InetSocketAddress socketAddress) {
+        return (savedNettyServer = new NettyServer(socketAddress));
+    }
+
+    /**
+     * Создать локальный Netty сервер
+     *
+     * @param serverPort - порт локального сервера
+     */
+    public NettyServer createLocalServer(int serverPort) {
+        return createServer(createSocketAddress("localhost", serverPort));
+    }
+
+    /**
+     * Создать Netty клиент
+     *
+     * @param socketAddress - адрес сервера, к которому будет подключаться клиент
+     */
+    public NettyClient createClient(@NonNull InetSocketAddress socketAddress) {
+        return (savedNettyClient = new NettyClient(socketAddress));
+    }
+
+    /**
+     * Создать локальный Netty клиент
+     *
+     * @param serverPort - порт локального сервера
+     */
+    public NettyClient createLocalClient(int serverPort) {
+        return createClient(createSocketAddress("localhost", serverPort));
     }
 
 }

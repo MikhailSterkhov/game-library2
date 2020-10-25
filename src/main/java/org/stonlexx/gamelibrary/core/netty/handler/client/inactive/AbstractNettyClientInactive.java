@@ -1,4 +1,4 @@
-package org.stonlexx.gamelibrary.core.netty.reconnect.client;
+package org.stonlexx.gamelibrary.core.netty.handler.client.inactive;
 
 import io.netty.channel.Channel;
 import lombok.NonNull;

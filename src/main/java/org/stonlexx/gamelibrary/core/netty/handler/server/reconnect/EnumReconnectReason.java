@@ -1,4 +1,4 @@
-package org.stonlexx.gamelibrary.core.netty.reconnect.server;
+package org.stonlexx.gamelibrary.core.netty.handler.server.reconnect;
 
 public enum EnumReconnectReason {
 

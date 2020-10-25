@@ -1,4 +1,4 @@
-package org.stonlexx.gamelibrary.core.netty.reconnect.server;
+package org.stonlexx.gamelibrary.core.netty.handler.server.reconnect;
 
 import io.netty.channel.Channel;
 import lombok.Getter;
@@ -8,11 +8,11 @@ import lombok.Setter;
 @Setter
 public abstract class AbstractNettyReconnect {
 
-    private Channel channel;
-    private Throwable exception;
-    private EnumReconnectReason reason;
+    protected Channel channel;
+    protected Throwable exception;
+    protected EnumReconnectReason reason;
 
-    private Runnable connectRunnable;
+    protected Runnable connectRunnable;
 
 
     /**
