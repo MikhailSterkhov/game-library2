@@ -1,35 +1,35 @@
-package org.stonlexx.gamelibrary.core.netty.packet;
+package org.stonlexx.gamelibrary.core.netty.packet.impl;
 
 import io.netty.channel.Channel;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.stonlexx.gamelibrary.GameLibrary;
 import org.stonlexx.gamelibrary.core.event.impl.PacketHandleEvent;
+import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
+import org.stonlexx.gamelibrary.core.netty.packet.NettyPacketHandleData;
 import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public abstract class AbstractNettyPacket implements NettyPacket {
 
     @Setter
-    protected NettyPacketHandleData packetHandleData = NettyPacketHandleData.create();
+    protected NettyPacketHandleData handleData = NettyPacketHandleData.create();
 
 
     @Override
     public void writePacket(NettyPacketBuffer packetBuffer) {
+        // override me...
     }
 
     @Override
     public void readPacket(NettyPacketBuffer packetBuffer) {
+        // override me...
     }
 
     @Override
     public void handle(Channel channel) {
+        // override me...
     }
-
-
 
     /**
      * Вызвать ивент обработки пакета

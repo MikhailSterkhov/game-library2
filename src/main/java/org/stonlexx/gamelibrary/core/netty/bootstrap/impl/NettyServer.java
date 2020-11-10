@@ -12,6 +12,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.stonlexx.gamelibrary.GameLibrary;
+import org.stonlexx.gamelibrary.core.netty.NettyConnection;
 import org.stonlexx.gamelibrary.core.netty.NettyManager;
 import org.stonlexx.gamelibrary.core.netty.bootstrap.NettyBootstrapChannel;
 import org.stonlexx.gamelibrary.core.netty.builder.NettyServerBuilder;
@@ -20,6 +21,7 @@ import org.stonlexx.gamelibrary.core.netty.handler.client.active.impl.NettyConsu
 import org.stonlexx.gamelibrary.core.netty.handler.client.inactive.AbstractNettyClientInactive;
 import org.stonlexx.gamelibrary.core.netty.handler.client.inactive.impl.NettyConsumerClientInactive;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
+import org.stonlexx.gamelibrary.core.netty.packet.callback.NettyPacketCallbackHandler;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketTyping;
 import org.stonlexx.gamelibrary.utility.query.ResponseHandler;
@@ -47,8 +49,9 @@ public class NettyServer implements NettyBootstrapChannel {
 
     protected ServerBootstrap serverBootstrap;
     protected Channel channel;
+    protected NettyConnection nettyConnection;
 
-    protected final Map<SocketAddress, Channel> clientChannelMap = new LinkedHashMap<>();
+    protected final Map<SocketAddress, NettyConnection> clientChannelMap = new LinkedHashMap<>();
 
 
 // ======================================================== // STATIC // ======================================================== //
@@ -58,7 +61,7 @@ public class NettyServer implements NettyBootstrapChannel {
 // ============================================================================================================================= //
 
     {
-        addNettyClientActive(new NettyConsumerClientActive(channel -> clientChannelMap.put(channel.remoteAddress(), channel)));
+        addNettyClientActive(new NettyConsumerClientActive(channel -> clientChannelMap.put(channel.remoteAddress(), new NettyConnection((InetSocketAddress) channel.remoteAddress(), channel))));
         addNettyClientInactive(new NettyConsumerClientInactive(channel -> clientChannelMap.remove(channel.remoteAddress())));
     }
 
@@ -71,7 +74,9 @@ public class NettyServer implements NettyBootstrapChannel {
      */
     public void setChannelFutureListener(BiConsumer<ChannelFuture, Boolean> channelFutureConsumer) {
         this.channelFutureListener = NETTY_MANAGER.getNettyBootstrap().createFutureListener((channelFuture, isSuccess) -> {
+
             this.channel = channelFuture.channel();
+            this.nettyConnection = new NettyConnection(socketAddress, channel);
 
             if (channelFutureConsumer != null) {
                 channelFutureConsumer.accept(channelFuture, isSuccess);
@@ -139,12 +144,14 @@ public class NettyServer implements NettyBootstrapChannel {
     }
 
     /**
-     * Отправить пакет на сервер
+     * Зарегистрировать все пакеты, которые
+     * имеют аннотацию {@link org.stonlexx.gamelibrary.core.netty.packet.annotation.PacketAutoRegister}
+     * и хранятся в указанном пакейдже
      *
-     * @param nettyPacket - пакет
+     * @param packageName - имя пакейджа для скана
      */
-    public void sendPacket(@NonNull NettyPacket nettyPacket) {
-        channel.writeAndFlush(nettyPacket);
+    public void autoRegisterPackets(@NonNull String packageName) {
+        NETTY_MANAGER.getAutoRegisterPacketTyping().autoRegisterPackets(packageName);
     }
 
     /**
@@ -154,7 +161,29 @@ public class NettyServer implements NettyBootstrapChannel {
      * @param nettyPacket - пакет
      */
     public void sendPacketToClients(@NonNull NettyPacket nettyPacket) {
-        for (Channel channel : clientChannelMap.values()) channel.writeAndFlush(nettyPacket);
+        for (NettyConnection nettyConnection : clientChannelMap.values())
+            nettyConnection.sendPacket(nettyPacket);
+    }
+
+    /**
+     * Отправить пакет всем клиентам, подключенным
+     * к серверу
+     *
+     * @param nettyPacket - пакет
+     */
+    public <P extends NettyPacket> void sendPacketToClients(@NonNull P nettyPacket, @NonNull NettyPacketCallbackHandler<P> nettyPacketCallbackHandler) {
+        for (NettyConnection nettyConnection : clientChannelMap.values())
+            nettyConnection.sendPacket(nettyPacket, nettyPacketCallbackHandler);
+    }
+
+    /**
+     * Получить подключенный к данному серверу клиент
+     * по его адресу
+     *
+     * @param socketAddress - адрес клиента
+     */
+    public NettyConnection getConnectedClient(@NonNull SocketAddress socketAddress) {
+        return clientChannelMap.get(socketAddress);
     }
 
 

@@ -3,10 +3,13 @@ package org.stonlexx.test.netty.packet;
 import io.netty.channel.Channel;
 import org.stonlexx.gamelibrary.GameLibrary;
 import org.stonlexx.gamelibrary.core.netty.packet.impl.AbstractNettyPacket;
+import org.stonlexx.gamelibrary.core.netty.packet.annotation.PacketAutoRegister;
 import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
+import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
 import org.stonlexx.gamelibrary.utility.location.PointLocation;
 
-public class StringTestPacket extends AbstractNettyPacket {
+@PacketAutoRegister(id = "AutoRegistered-TestPacket", direction = NettyPacketDirection.GLOBAL)
+public class ARTestPacket extends AbstractNettyPacket {
 
     @Override
     public void writePacket(NettyPacketBuffer packetBuffer) {

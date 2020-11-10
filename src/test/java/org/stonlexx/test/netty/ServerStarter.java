@@ -7,6 +7,7 @@ import org.stonlexx.gamelibrary.core.netty.bootstrap.impl.NettyServer;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
 import org.stonlexx.gamelibrary.core.netty.handler.client.active.impl.NettyConsumerClientActive;
 import org.stonlexx.gamelibrary.core.netty.handler.client.inactive.impl.NettyConsumerClientInactive;
+import org.stonlexx.test.netty.packet.CallbackTestPacket;
 import org.stonlexx.test.netty.packet.IntTestPacket;
 import org.stonlexx.test.netty.packet.StringTestPacket;
 
@@ -42,16 +43,19 @@ public class ServerStarter {
         //регистрация с автоопределением ключа по названию класса пакета
         nettyServer.createPacketRegistry(String.class, Class::getSimpleName, packetRegistry -> {
 
-            packetRegistry.registerPacket(NettyPacketDirection.TO_SERVER, StringTestPacket.class);
-            packetRegistry.registerPacket(NettyPacketDirection.TO_CLIENT, StringTestPacket.class);
+            packetRegistry.registerPacket(NettyPacketDirection.CALLBACK, CallbackTestPacket.class);
+            packetRegistry.registerPacket(NettyPacketDirection.GLOBAL, StringTestPacket.class);
         });
 
         //регистрация без автоопределения ключа по указанному самостоятельно номеру пакета
         nettyServer.createPacketRegistry(int.class, null, packetRegistry -> {
 
-            packetRegistry.registerPacket(NettyPacketDirection.TO_SERVER, IntTestPacket.class, 0x01);
-            packetRegistry.registerPacket(NettyPacketDirection.TO_CLIENT, IntTestPacket.class, 0x01);
+            packetRegistry.registerPacket(NettyPacketDirection.ONLY_DECODE, IntTestPacket.class, 0x01);
+            packetRegistry.registerPacket(NettyPacketDirection.ONLY_ENCODE, IntTestPacket.class, 0x01);
         });
+
+        //автоматический скан и регистрация пакетов по аннотации @PacketAutoRegister
+        nettyServer.autoRegisterPackets("org.stonlexx.test.netty.packet");
 
         nettyServer.bind();
     }

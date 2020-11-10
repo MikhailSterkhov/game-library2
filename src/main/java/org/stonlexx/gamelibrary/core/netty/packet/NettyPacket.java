@@ -1,6 +1,7 @@
 package org.stonlexx.gamelibrary.core.netty.packet;
 
 import io.netty.channel.Channel;
+import lombok.NonNull;
 import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
 
 public interface NettyPacket {
@@ -11,20 +12,19 @@ public interface NettyPacket {
      *
      * @param packetBuffer - хранилище байтов
      */
-    void writePacket(NettyPacketBuffer packetBuffer);
+    void writePacket(@NonNull NettyPacketBuffer packetBuffer);
 
     /**
      * Прочитать байты пакета перед его обработкой
      *
      * @param packetBuffer - хранилище байтов
      */
-    void readPacket(NettyPacketBuffer packetBuffer);
-
+    void readPacket(@NonNull NettyPacketBuffer packetBuffer);
 
     /**
      * Обработать пакет
      *
      * @param channel - канал, с которого пришел пакет
      */
-    void handle(Channel channel);
+    void handle(@NonNull Channel channel);
 }

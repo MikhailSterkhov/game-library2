@@ -2,7 +2,6 @@ package org.stonlexx.gamelibrary.core.event;
 
 import lombok.Getter;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -11,32 +10,22 @@ public final class EventManager {
     private final Map<String, List<Method>> eventMethodsMap = new HashMap<>();
 
     @Getter
-    private final Map<Integer, CoreEventListener> listenerMap = new HashMap<>();
+    private final List<CoreEventListener> listenerList = new ArrayList<>();
 
 
     /**
      * Регистрация листенера с ивентами под
      * уникальным ID
      *
-     * @param listenerId   - уникальный ID листенера
      * @param coreEventListener - листенер
      */
-    public void registerListener(int listenerId, CoreEventListener coreEventListener) {
-        if (listenerMap.containsKey(listenerId)) {
-            throw new EventException("Под данным ID (%s) уже зарегистрирован другой листенер", listenerId);
+    public void registerListener(CoreEventListener coreEventListener) {
+        if (listenerList.contains(coreEventListener)) {
+            return;
         }
 
-        listenerMap.put(listenerId, coreEventListener);
+        listenerList.add(coreEventListener);
         registerEvents(coreEventListener);
-    }
-
-    /**
-     * Получить листенер по его ID
-     *
-     * @param listenerId - ID листенера
-     */
-    public CoreEventListener getListener(int listenerId) {
-        return listenerMap.get(listenerId);
     }
 
     /**
@@ -84,11 +73,14 @@ public final class EventManager {
         }
 
         for (Method method : methods) {
-            for (CoreEventListener coreEventListener : listenerMap.values()) {
+            for (CoreEventListener coreEventListener : listenerList) {
                 try {
+                    if (coreEventListener.getClass().getMethod(method.getName(), method.getParameterTypes()) == null) {
+                        continue;
+                    }
+
                     method.invoke(coreEventListener, coreEvent);
-                } catch (IllegalAccessException | InvocationTargetException ignored) {
-                }
+                } catch (Exception ignored) { }
             }
         }
     }

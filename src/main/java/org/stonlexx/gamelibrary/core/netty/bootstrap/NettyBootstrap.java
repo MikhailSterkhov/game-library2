@@ -12,7 +12,6 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
 import lombok.Getter;
 import lombok.NonNull;
-import org.stonlexx.gamelibrary.GameLibrary;
 import org.stonlexx.gamelibrary.core.netty.bootstrap.impl.NettyClient;
 import org.stonlexx.gamelibrary.core.netty.bootstrap.impl.NettyServer;
 import org.stonlexx.gamelibrary.core.netty.handler.client.active.AbstractNettyClientActive;
@@ -139,10 +138,6 @@ public final class NettyBootstrap {
      */
     public ChannelFutureListener createFutureListener(@NonNull BiConsumer<ChannelFuture, Boolean> futureConsumer) {
         return future -> {
-
-            if (future.isSuccess()) {
-                GameLibrary.getInstance().getNettyManager().saveChannel(future.channel());
-            }
 
             NettyServerReconnectHandler serverReconnectHandler
                     = (NettyServerReconnectHandler) future.channel().pipeline().get("reconnect-handler");

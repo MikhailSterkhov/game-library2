@@ -1,12 +1,18 @@
 package org.stonlexx.gamelibrary.core.netty.packet.typing;
 
 import lombok.*;
+import org.reflections.Reflections;
+import org.reflections.scanners.ResourcesScanner;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
+import org.reflections.util.FilterBuilder;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
+import org.stonlexx.gamelibrary.core.netty.packet.annotation.PacketAutoRegister;
 import org.stonlexx.gamelibrary.core.netty.packet.mapping.NettyPacketMapper;
 import org.stonlexx.gamelibrary.utility.query.ResponseHandler;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
@@ -48,6 +54,39 @@ public class NettyPacketTyping<T> {
 
 // ================================================================================================================== //
 
+
+    /**
+     * Зарегистрировать все пакеты, которые
+     * имеют аннотацию {@link org.stonlexx.gamelibrary.core.netty.packet.annotation.PacketAutoRegister}
+     * и хранятся в указанном пакейдже
+     *
+     * @param packageName - имя пакейджа для скана
+     */
+    public void autoRegisterPackets(@NonNull String packageName) {
+        List<ClassLoader> classLoadersList = new LinkedList<>();
+
+        classLoadersList.add(ClasspathHelper.contextClassLoader());
+        classLoadersList.add(ClasspathHelper.staticClassLoader());
+
+        Reflections reflections = new Reflections(new ConfigurationBuilder()
+                .setUrls(ClasspathHelper.forClassLoader(classLoadersList.toArray(new ClassLoader[0])))
+
+                .setScanners(new SubTypesScanner(false), new ResourcesScanner())
+                .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName))));
+
+        for (Class<? extends NettyPacket> packetClass : reflections.getSubTypesOf(NettyPacket.class)) {
+            PacketAutoRegister packetAutoRegister = packetClass.getDeclaredAnnotation(PacketAutoRegister.class);
+
+            if (packetAutoRegister == null) {
+                continue;
+            }
+
+            String packetId = packetAutoRegister.id();
+            NettyPacketDirection nettyPacketDirection = packetAutoRegister.direction();
+
+            registerPacket(nettyPacketDirection, packetClass, (T) packetId);
+        }
+    }
 
     /**
      * Зарегистрировать пакет в маппере

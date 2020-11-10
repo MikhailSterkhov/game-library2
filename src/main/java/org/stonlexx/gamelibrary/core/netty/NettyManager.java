@@ -1,11 +1,9 @@
 package org.stonlexx.gamelibrary.core.netty;
 
-import io.netty.channel.Channel;
 import lombok.Getter;
 import lombok.NonNull;
 import org.stonlexx.gamelibrary.core.netty.bootstrap.NettyBootstrap;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
-import org.stonlexx.gamelibrary.core.netty.packet.codec.NettyPacketCodecManager;
 import org.stonlexx.gamelibrary.core.netty.packet.mapping.NettyPacketMapper;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketTyping;
@@ -15,33 +13,8 @@ import java.util.Collection;
 @Getter
 public final class NettyManager {
 
-    private final NettyBootstrap nettyBootstrap                 = new NettyBootstrap();
-    private final NettyPacketCodecManager packetCodecManager    = new NettyPacketCodecManager();
-
-    private Channel savedChannel;
-
-
-    /**
-     * Сохранить успешно подключенный канал
-     *
-     * @param channel - канал
-     */
-    public void saveChannel(Channel channel) {
-        if (channel != null && (!channel.isActive() || !channel.isOpen())) {
-            return;
-        }
-
-        this.savedChannel = channel;
-    }
-
-    /**
-     * Отправить пакет сохраненному каналу
-     *
-     * @param nettyPacket - пакет
-     */
-    public void sendPacket(@NonNull NettyPacket nettyPacket) {
-        savedChannel.writeAndFlush(nettyPacket);
-    }
+    private final NettyBootstrap nettyBootstrap                         = new NettyBootstrap();
+    private final NettyPacketTyping<String> autoRegisterPacketTyping    = NettyPacketTyping.createPacketTyping(String.class, "auto-register");
 
     /**
      * Создать (если не существет) и получить

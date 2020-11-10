@@ -46,7 +46,6 @@ public class NettyPacketBuffer extends ByteBuf {
         byte[] bytes = new byte[len];
 
         byteBuf.readBytes(bytes);
-
         return new String(bytes, StandardCharsets.UTF_8);
     }
 

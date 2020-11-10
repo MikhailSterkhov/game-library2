@@ -1,58 +1,38 @@
 package org.stonlexx.gamelibrary.core.netty.packet.codec;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.NonNull;
 import org.stonlexx.gamelibrary.GameLibrary;
 import org.stonlexx.gamelibrary.core.netty.NettyManager;
-import org.stonlexx.gamelibrary.core.netty.packet.AbstractNettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacketHandleData;
 import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
-import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketTyping;
+import org.stonlexx.gamelibrary.core.netty.packet.callback.NettyPacketCallbackHandler;
+import org.stonlexx.gamelibrary.core.netty.packet.impl.AbstractNettyPacket;
+import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
 import org.stonlexx.gamelibrary.utility.JsonUtil;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class NettyPacketEncoder
         extends MessageToByteEncoder<NettyPacket> {
 
-
-    /**
-     * Чтение пришедшего пакета от клиента
-     *
-     * @param channel - канал, с которого пришел пакет
-     * @param nettyPacketBuffer - обработчик байтов
-     * @param nettyPacket - пакет
-     * @param nettyPacketId - номер пакета
-     */
-    public void encode(@NonNull Channel channel,
-                       @NonNull NettyPacketBuffer nettyPacketBuffer,
-
-                       @NonNull NettyPacket nettyPacket,
-                       @NonNull Object nettyPacketId) {
-
-        nettyPacket.writePacket(nettyPacketBuffer);
-
-        if (nettyPacket instanceof AbstractNettyPacket) {
-            AbstractNettyPacket abstractNettyPacket = ((AbstractNettyPacket) nettyPacket);
-
-            writeHandleData(abstractNettyPacket.getPacketHandleData(), nettyPacketBuffer);
-        }
-    }
+    public static final Cache<Object, NettyPacketCallbackHandler> CALLBACK_NETTY_PACKET_CACHE = CacheBuilder.newBuilder()
+            .expireAfterWrite(1, TimeUnit.SECONDS)
+            .build();
 
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, NettyPacket nettyPacket, ByteBuf byteBuf) {
-        Channel channel = channelHandlerContext.channel();
-
         NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
         NettyPacketBuffer nettyPacketBuffer = new NettyPacketBuffer(byteBuf);
 
-        Object nettyPacketId = nettyManager.getNettyPacketId(nettyManager.getPacketCodecManager().getEncodePacketDirection(), nettyPacket.getClass());
-
+        Object nettyPacketId = nettyManager.getNettyPacketId(NettyPacketDirection.ONLY_ENCODE, nettyPacket.getClass());
         if (nettyPacketId == null) {
             throw new NullPointerException("Packet " + nettyPacket.getClass().getSimpleName() + " is not registered!");
         }
@@ -60,7 +40,14 @@ public class NettyPacketEncoder
         nettyPacketBuffer.writeString(nettyPacketId.getClass().getName());
         nettyPacketBuffer.writeString(JsonUtil.toJson(nettyPacketId));
 
-        encode(channel, nettyPacketBuffer, nettyPacket, nettyPacketId);
+        checkCallback(nettyPacketId, nettyPacketBuffer);
+        nettyPacket.writePacket(nettyPacketBuffer);
+
+        if (nettyPacket instanceof AbstractNettyPacket) {
+            AbstractNettyPacket abstractNettyPacket = ((AbstractNettyPacket) nettyPacket);
+
+            writeHandleData(abstractNettyPacket.getHandleData(), nettyPacketBuffer);
+        }
     }
 
     /**
@@ -90,6 +77,25 @@ public class NettyPacketEncoder
         });
 
         nettyPacketBuffer.writeBoolean(false);
+    }
+
+    /**
+     * Проверить и установить разрешение на callback
+     *
+     * @param nettyPacketId - номер callback пакета
+     * @param nettyPacketBuffer - обработчик байтов пакета
+     */
+    protected void checkCallback(@NonNull Object nettyPacketId,
+                                 @NonNull NettyPacketBuffer nettyPacketBuffer) {
+
+        NettyPacketCallbackHandler<?> nettyPacketCallbackHandler = CALLBACK_NETTY_PACKET_CACHE.asMap().get(nettyPacketId);
+        boolean hasCallback = nettyPacketCallbackHandler != null;
+
+        if (hasCallback) {
+            nettyPacketCallbackHandler.waitCallbackResponse();
+        }
+
+        nettyPacketBuffer.writeBoolean(hasCallback);
     }
 
 }

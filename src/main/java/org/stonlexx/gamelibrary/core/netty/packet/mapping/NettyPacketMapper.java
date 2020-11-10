@@ -17,8 +17,8 @@ public final class NettyPacketMapper<T> {
     private final EnumMap<NettyPacketDirection, BiMap<Class<? extends NettyPacket>, T>> packetMap
             = new EnumMap<NettyPacketDirection, BiMap<Class<? extends NettyPacket>, T>>(NettyPacketDirection.class) {{
 
-        put(NettyPacketDirection.TO_CLIENT, HashBiMap.create());
-        put(NettyPacketDirection.TO_SERVER, HashBiMap.create());
+        put(NettyPacketDirection.ONLY_DECODE, HashBiMap.create());
+        put(NettyPacketDirection.ONLY_ENCODE, HashBiMap.create());
     }};
 
 
@@ -34,10 +34,10 @@ public final class NettyPacketMapper<T> {
 
                                T nettyPacketId) {
 
-        if (nettyPacketDirection == NettyPacketDirection.TO_ALL) {
+        if (nettyPacketDirection == NettyPacketDirection.GLOBAL || nettyPacketDirection == NettyPacketDirection.CALLBACK) {
 
-            registerPacket(NettyPacketDirection.TO_SERVER, nettyPacketClass, nettyPacketId);
-            registerPacket(NettyPacketDirection.TO_CLIENT, nettyPacketClass, nettyPacketId);
+            registerPacket(NettyPacketDirection.ONLY_DECODE, nettyPacketClass, nettyPacketId);
+            registerPacket(NettyPacketDirection.ONLY_ENCODE, nettyPacketClass, nettyPacketId);
             return;
         }
 
@@ -57,10 +57,10 @@ public final class NettyPacketMapper<T> {
 
         T nettyPacketId = packetKeyHandler.handleResponse(nettyPacketClass);
 
-        if (nettyPacketDirection == NettyPacketDirection.TO_ALL) {
+        if (nettyPacketDirection == NettyPacketDirection.GLOBAL || nettyPacketDirection == NettyPacketDirection.CALLBACK) {
 
-            registerPacket(NettyPacketDirection.TO_SERVER, nettyPacketClass, nettyPacketId);
-            registerPacket(NettyPacketDirection.TO_CLIENT, nettyPacketClass, nettyPacketId);
+            registerPacket(NettyPacketDirection.ONLY_DECODE, nettyPacketClass, nettyPacketId);
+            registerPacket(NettyPacketDirection.ONLY_ENCODE, nettyPacketClass, nettyPacketId);
             return;
         }
 
@@ -96,7 +96,8 @@ public final class NettyPacketMapper<T> {
      * Получить общее количество зарегистрированных пакетов
      */
     public int getRegisteredPacketsCount() {
-        return packetMap.get(NettyPacketDirection.TO_SERVER).size() + packetMap.get(NettyPacketDirection.TO_CLIENT).size();
+        return packetMap.get(NettyPacketDirection.ONLY_DECODE).size()
+                + packetMap.get(NettyPacketDirection.ONLY_ENCODE).size();
     }
 
     /**

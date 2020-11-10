@@ -72,11 +72,6 @@ public class NettyClientBuilder<K> {
         NettyClientBuilder<K> nettyServerBuilder = new NettyClientBuilder<>(inetSocketAddress, packetKeyClass);
         nettyServerBuilder.nettyPacketTyping = NettyPacketTyping.createPacketTyping(packetKeyClass, RandomStringUtils.randomAlphabetic(16));
 
-        NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
-
-        nettyManager.getPacketCodecManager().setDecodePacketDirection(NettyPacketDirection.TO_CLIENT);
-        nettyManager.getPacketCodecManager().setEncodePacketDirection(NettyPacketDirection.TO_SERVER);
-
         return nettyServerBuilder;
     }
 

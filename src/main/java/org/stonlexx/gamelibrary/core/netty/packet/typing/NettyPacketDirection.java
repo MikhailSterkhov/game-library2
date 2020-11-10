@@ -2,5 +2,5 @@ package org.stonlexx.gamelibrary.core.netty.packet.typing;
 
 public enum NettyPacketDirection {
 
-    TO_SERVER, TO_CLIENT, TO_ALL
+    ONLY_DECODE, ONLY_ENCODE, GLOBAL, CALLBACK
 }

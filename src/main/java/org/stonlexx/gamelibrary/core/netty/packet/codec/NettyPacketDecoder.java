@@ -5,12 +5,16 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import org.stonlexx.gamelibrary.GameLibrary;
 import org.stonlexx.gamelibrary.core.netty.NettyManager;
-import org.stonlexx.gamelibrary.core.netty.packet.AbstractNettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacketHandleData;
 import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
+import org.stonlexx.gamelibrary.core.netty.packet.callback.NettyPacketCallbackHandler;
+import org.stonlexx.gamelibrary.core.netty.packet.callback.impl.EmptyPacketCallbackHandler;
+import org.stonlexx.gamelibrary.core.netty.packet.impl.AbstractNettyPacket;
+import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketTyping;
 import org.stonlexx.gamelibrary.utility.JsonUtil;
 
@@ -19,40 +23,10 @@ import java.util.List;
 public class NettyPacketDecoder
         extends ByteToMessageDecoder {
 
-    /**
-     * Чтение пришедшего пакета от клиента
-     *
-     * @param channel - канал, с которого пришел пакет
-     * @param nettyPacketBuffer - обработчик байтов
-     * @param nettyPacket - пакет
-     * @param nettyPacketId - номер пакета
-     */
-    public void decode(@NonNull Channel channel,
-                       @NonNull NettyPacketBuffer nettyPacketBuffer,
-
-                       @NonNull NettyPacket nettyPacket,
-                       @NonNull Object nettyPacketId) {
-
-        nettyPacket.readPacket(nettyPacketBuffer);
-
-        try {
-            if (nettyPacket instanceof AbstractNettyPacket) {
-                AbstractNettyPacket abstractNettyPacket = ((AbstractNettyPacket) nettyPacket);
-                NettyPacketHandleData nettyPacketHandleData = readHandleData(nettyPacketBuffer);
-
-                abstractNettyPacket.setPacketHandleData(nettyPacketHandleData);
-            }
-        }
-
-        catch (Exception exception) {
-            exception.printStackTrace();
-        }
-    }
-
     @Override
-    protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> handleList) throws Exception {
+    @SneakyThrows
+    protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> handleList) {
         NettyPacketBuffer nettyPacketBuffer = new NettyPacketBuffer(byteBuf);
-
         Channel channel = channelHandlerContext.channel();
 
         String packetIdClassName = nettyPacketBuffer.readString();
@@ -64,12 +38,43 @@ public class NettyPacketDecoder
         NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
 
         NettyPacketTyping nettyPacketTyping
-                = nettyManager.findTypingByNettyPacket(nettyManager.getPacketCodecManager().getDecodePacketDirection(), nettyPacketId);
+                = nettyManager.findTypingByNettyPacket(NettyPacketDirection.ONLY_DECODE, nettyPacketId);
 
-        NettyPacket nettyPacket = nettyPacketTyping.getNettyPacket(nettyManager.getPacketCodecManager().getDecodePacketDirection(), nettyPacketId);
+        NettyPacket nettyPacket = nettyPacketTyping.getNettyPacket(NettyPacketDirection.ONLY_DECODE, nettyPacketId);
+        boolean hasCallback = nettyPacketBuffer.readBoolean();
 
-        decode(channel, nettyPacketBuffer, nettyPacket, nettyPacketId);
+        if (nettyPacket == null) {
+            return;
+        }
+
+        nettyPacket.readPacket(nettyPacketBuffer);
+
+        try {
+            if (nettyPacket instanceof AbstractNettyPacket) {
+                AbstractNettyPacket abstractNettyPacket = ((AbstractNettyPacket) nettyPacket);
+                NettyPacketHandleData nettyPacketHandleData = readHandleData(nettyPacketBuffer);
+
+                abstractNettyPacket.setHandleData(nettyPacketHandleData);
+            }
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
         handleList.add(nettyPacket);
+
+
+        if (hasCallback) {
+            NettyPacketEncoder.CALLBACK_NETTY_PACKET_CACHE.cleanUp();
+            NettyPacketCallbackHandler nettyPacketCallbackHandler = NettyPacketEncoder.CALLBACK_NETTY_PACKET_CACHE.asMap().get(nettyPacketId);
+
+            if (nettyPacketCallbackHandler != null && nettyPacketCallbackHandler.isWaitingResponse()) {
+                nettyPacketCallbackHandler.handleCallback(nettyPacket);
+                return;
+            }
+
+            NettyPacketEncoder.CALLBACK_NETTY_PACKET_CACHE.put(nettyPacketId, new EmptyPacketCallbackHandler());
+            channel.writeAndFlush(nettyPacket);
+        }
     }
 
     /**

@@ -9,6 +9,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.stonlexx.gamelibrary.GameLibrary;
+import org.stonlexx.gamelibrary.core.netty.NettyConnection;
 import org.stonlexx.gamelibrary.core.netty.NettyManager;
 import org.stonlexx.gamelibrary.core.netty.bootstrap.NettyBootstrapChannel;
 import org.stonlexx.gamelibrary.core.netty.builder.NettyClientBuilder;
@@ -46,7 +47,8 @@ public class NettyClient implements NettyBootstrapChannel {
     protected Bootstrap bootstrap;
     protected Channel channel;
 
-    protected Channel serverChannel;
+    protected NettyConnection serverConnection;
+    protected NettyConnection nettyConnection;
 
 
 // ======================================================== // STATIC // ======================================================== //
@@ -56,14 +58,7 @@ public class NettyClient implements NettyBootstrapChannel {
 // ============================================================================================================================= //
 
     {
-        addNettyServerActive(new NettyConsumerServerActive(channel -> this.serverChannel = channel));
-    }
-
-    static {
-        NettyManager nettyManager = GameLibrary.getInstance().getNettyManager();
-
-        nettyManager.getPacketCodecManager().setDecodePacketDirection(NettyPacketDirection.TO_CLIENT);
-        nettyManager.getPacketCodecManager().setEncodePacketDirection(NettyPacketDirection.TO_SERVER);
+        addNettyServerActive(new NettyConsumerServerActive(channel -> this.serverConnection = new NettyConnection((InetSocketAddress) channel.remoteAddress(), channel)));
     }
 
 
@@ -75,7 +70,9 @@ public class NettyClient implements NettyBootstrapChannel {
      */
     public void setChannelFutureListener(BiConsumer<ChannelFuture, Boolean> channelFutureConsumer) {
         this.channelFutureListener = NETTY_MANAGER.getNettyBootstrap().createFutureListener((channelFuture, isSuccess) -> {
+
             this.channel = channelFuture.channel();
+            this.nettyConnection = new NettyConnection(socketAddress, channel);
 
             if (channelFutureConsumer != null) {
                 channelFutureConsumer.accept(channelFuture, isSuccess);
@@ -89,7 +86,8 @@ public class NettyClient implements NettyBootstrapChannel {
      * @param channelConsumer - ответ, который возвращает канал
      */
     public void setChannelInitializer(Consumer<NioSocketChannel> channelConsumer) {
-        this.channelInitializer = NETTY_MANAGER.getNettyBootstrap().createClientChannelInitializer(channelConsumer, nettyReconnect, nettyServerActiveCollection, standardCodec);
+        this.channelInitializer = NETTY_MANAGER.getNettyBootstrap()
+                .createClientChannelInitializer(channelConsumer, nettyReconnect, nettyServerActiveCollection, standardCodec);
     }
 
     /**
@@ -135,29 +133,14 @@ public class NettyClient implements NettyBootstrapChannel {
     }
 
     /**
-     * Отправить пакет на клиент
+     * Зарегистрировать все пакеты, которые
+     * имеют аннотацию {@link org.stonlexx.gamelibrary.core.netty.packet.annotation.PacketAutoRegister}
+     * и хранятся в указанном пакейдже
      *
-     * @param nettyPacket - пакет
+     * @param packageName - имя пакейджа для скана
      */
-    public void sendPacket(@NonNull NettyPacket nettyPacket) {
-        if (channel == null || !channel.isActive() || !channel.isOpen() || !channel.isWritable() || !channel.isRegistered()) {
-            return;
-        }
-
-        channel.writeAndFlush(nettyPacket);
-    }
-
-    /**
-     * Отправить пакет на подключенный сервер
-     *
-     * @param nettyPacket - пакет
-     */
-    public void sendPacketToServer(@NonNull NettyPacket nettyPacket) {
-        if (serverChannel == null || !serverChannel.isActive() || !serverChannel.isOpen() || !serverChannel.isWritable() || !serverChannel.isRegistered()) {
-            return;
-        }
-
-        serverChannel.writeAndFlush(nettyPacket);
+    public void autoRegisterPackets(@NonNull String packageName) {
+        NETTY_MANAGER.getAutoRegisterPacketTyping().autoRegisterPackets(packageName);
     }
 
 
