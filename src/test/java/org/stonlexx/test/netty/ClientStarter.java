@@ -48,7 +48,7 @@ public class ClientStarter {
         nettyClient.setNettyReconnect(new NettyPrintableReconnect("Reconnecting to server..."));
 
         // установка стандартных кодеков, если нужно установить свои,
-        //то это можно сделать через setChannelInitializer()
+        //  то это можно сделать через setChannelInitializer()
         nettyClient.setStandardCodec();
 
         nettyClient.setChannelFutureListener((channelFuture, isSuccess) -> {
@@ -62,21 +62,21 @@ public class ClientStarter {
 
 
         // можно регистрировать пакеты по разным ключам
-        //регистрация с автоопределением ключа по названию класса пакета
+        //  регистрация с автоопределением ключа по названию класса пакета
         nettyClient.createPacketRegistry(String.class, Class::getSimpleName, packetRegistry -> {
 
             packetRegistry.registerPacket(NettyPacketDirection.CALLBACK, CallbackTestPacket.class);
             packetRegistry.registerPacket(NettyPacketDirection.GLOBAL, StringTestPacket.class);
         });
 
-        //регистрация без автоопределения ключа по указанному самостоятельно номеру пакета
+        // регистрация без автоопределения ключа по указанному самостоятельно номеру пакета
         nettyClient.createPacketRegistry(int.class, null, packetRegistry -> {
 
             packetRegistry.registerPacket(NettyPacketDirection.ONLY_ENCODE, IntTestPacket.class, 0x01);
             packetRegistry.registerPacket(NettyPacketDirection.ONLY_DECODE, IntTestPacket.class, 0x01);
         });
 
-        //автоматический скан и регистрация пакетов по аннотации @PacketAutoRegister
+        // автоматический скан и регистрация пакетов по аннотации @PacketAutoRegister
         nettyClient.autoRegisterPackets("org.stonlexx.test.netty.packet");
 
         nettyClient.connect();

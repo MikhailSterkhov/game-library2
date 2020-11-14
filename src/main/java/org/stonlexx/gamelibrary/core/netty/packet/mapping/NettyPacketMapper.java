@@ -55,6 +55,10 @@ public final class NettyPacketMapper<T> {
 
                                ResponseHandler<T, Class<? extends NettyPacket>> packetKeyHandler) {
 
+        if (packetKeyHandler == null) {
+            return;
+        }
+
         T nettyPacketId = packetKeyHandler.handleResponse(nettyPacketClass);
 
         if (nettyPacketDirection == NettyPacketDirection.GLOBAL || nettyPacketDirection == NettyPacketDirection.CALLBACK) {

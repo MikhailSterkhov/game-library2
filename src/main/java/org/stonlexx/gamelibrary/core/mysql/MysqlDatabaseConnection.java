@@ -1,10 +1,7 @@
 package org.stonlexx.gamelibrary.core.mysql;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
+import lombok.*;
 import org.apache.commons.lang3.SerializationUtils;
 import org.stonlexx.gamelibrary.utility.query.AsyncUtil;
 import org.stonlexx.gamelibrary.utility.query.ThrowableResponseHandler;
@@ -12,7 +9,8 @@ import org.stonlexx.gamelibrary.utility.query.ThrowableResponseHandler;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MysqlDatabaseConnection {
@@ -126,35 +124,33 @@ public class MysqlDatabaseConnection {
      * @param responseHandler - обработчик ответа запроса
      * @param queryElements - элементы для определения переменных в запросе
      */
+    @SneakyThrows
     public <T> T executeQuery(boolean asyncQuery,
 
                               @NonNull String mysqlQuery,
                               @NonNull ThrowableResponseHandler<T, ResultSet, SQLException> responseHandler,
                               @NonNull Object... queryElements) {
 
-        AtomicReference<T> result = new AtomicReference<>();
-
-        Runnable command = () -> {
+        Supplier<T> supplier = () -> {
             refreshConnection();
 
             try (MysqlStatement mysqlStatement = new MysqlStatement(connection, mysqlQuery, queryElements)) {
 
-                result.set(responseHandler.handleResponse(mysqlStatement.getResultSet()));
+                return responseHandler.handleResponse(mysqlStatement.getResultSet());
             }
 
             catch (SQLException exception) {
                 exception.printStackTrace();
+
+                return null;
             }
         };
 
         if (asyncQuery) {
-            AsyncUtil.submitAsync(command);
-            return null;
+            return CompletableFuture.supplyAsync(supplier).get();
         }
 
-        command.run();
-
-        return result.get();
+        return supplier.get();
     }
 
     /**

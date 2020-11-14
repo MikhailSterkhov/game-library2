@@ -11,6 +11,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.stonlexx.gamelibrary.GameLibrary;
 import org.stonlexx.gamelibrary.core.netty.NettyConnection;
 import org.stonlexx.gamelibrary.core.netty.NettyManager;
+import org.stonlexx.gamelibrary.core.netty.bootstrap.NettyBootstrap;
 import org.stonlexx.gamelibrary.core.netty.bootstrap.NettyBootstrapChannel;
 import org.stonlexx.gamelibrary.core.netty.builder.NettyClientBuilder;
 import org.stonlexx.gamelibrary.core.netty.handler.server.active.AbstractNettyServerActive;
@@ -206,6 +207,17 @@ public class NettyClient implements NettyBootstrapChannel {
 
             nettyPacketTyping.registerPacket(nettyPacketDirection, nettyPacketClass);
         }
+    }
+
+
+    private static final NettyBootstrap NETTY_BOOTSTRAP = GameLibrary.getInstance().getNettyManager().getNettyBootstrap();
+
+    public static NettyClient create(@NonNull InetSocketAddress inetSocketAddress) {
+        return NETTY_BOOTSTRAP.createClient(inetSocketAddress);
+    }
+
+    public static NettyClient createLocal(int serverPort) {
+        return NETTY_BOOTSTRAP.createLocalClient(serverPort);
     }
 
 }
