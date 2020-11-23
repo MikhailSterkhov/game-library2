@@ -2,18 +2,13 @@ package org.stonlexx.gamelibrary.core.netty.packet.impl;
 
 import io.netty.channel.Channel;
 import lombok.Getter;
-import lombok.Setter;
 import org.stonlexx.gamelibrary.GameLibrary;
 import org.stonlexx.gamelibrary.core.event.impl.PacketHandleEvent;
 import org.stonlexx.gamelibrary.core.netty.packet.NettyPacket;
-import org.stonlexx.gamelibrary.core.netty.packet.NettyPacketHandleData;
 import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
 
 @Getter
 public abstract class AbstractNettyPacket implements NettyPacket {
-
-    @Setter
-    protected NettyPacketHandleData handleData = NettyPacketHandleData.create();
 
 
     @Override

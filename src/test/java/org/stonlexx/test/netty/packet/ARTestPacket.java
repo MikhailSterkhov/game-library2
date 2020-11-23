@@ -2,11 +2,10 @@ package org.stonlexx.test.netty.packet;
 
 import io.netty.channel.Channel;
 import org.stonlexx.gamelibrary.GameLibrary;
-import org.stonlexx.gamelibrary.core.netty.packet.impl.AbstractNettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.annotation.PacketAutoRegister;
 import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
+import org.stonlexx.gamelibrary.core.netty.packet.impl.AbstractNettyPacket;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
-import org.stonlexx.gamelibrary.utility.location.PointLocation;
 
 @PacketAutoRegister(id = "AutoRegistered-TestPacket", direction = NettyPacketDirection.GLOBAL)
 public class ARTestPacket extends AbstractNettyPacket {
@@ -14,8 +13,6 @@ public class ARTestPacket extends AbstractNettyPacket {
     @Override
     public void writePacket(NettyPacketBuffer packetBuffer) {
         packetBuffer.writeString("tEst l1ne");
-
-        handleData.addHandleData("location", new PointLocation(2.1, 2.2, 8));
     }
 
     @Override
@@ -27,9 +24,7 @@ public class ARTestPacket extends AbstractNettyPacket {
 
     @Override
     public void handle(Channel channel) {
-        PointLocation pointLocation = handleData.getHandleDataObject(PointLocation.class, "location");
-
-        GameLibrary.getInstance().getLogger().info("Packet handle data value: " + pointLocation.toString());
+        GameLibrary.getInstance().getLogger().info("Packet handled");
     }
 
 }

@@ -9,6 +9,7 @@ import org.stonlexx.gamelibrary.core.netty.handler.server.active.impl.NettyConsu
 import org.stonlexx.gamelibrary.core.netty.handler.server.reconnect.impl.NettyPrintableReconnect;
 import org.stonlexx.gamelibrary.core.netty.packet.callback.NettyPacketCallbackHandler;
 import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
+import org.stonlexx.test.netty.handler.TestConnectionHandler;
 import org.stonlexx.test.netty.packet.CallbackTestPacket;
 import org.stonlexx.test.netty.packet.IntTestPacket;
 import org.stonlexx.test.netty.packet.StringTestPacket;
@@ -58,6 +59,10 @@ public class ClientStarter {
             }
 
             GameLibrary.getInstance().getLogger().info("Client failed was connecting to server!");
+        });
+
+        nettyClient.setChannelInitializer(nioSocketChannel -> {
+            nioSocketChannel.pipeline().addLast("connection-handler", new TestConnectionHandler());
         });
 
 

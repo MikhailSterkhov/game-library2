@@ -17,7 +17,9 @@ public class NettyServerReconnectHandler extends ChannelInboundHandlerAdapter {
 
 
     @Override
-    public void channelInactive(ChannelHandlerContext channelHandlerContext) {
+    public void channelInactive(ChannelHandlerContext channelHandlerContext) throws Exception {
+        super.channelInactive(channelHandlerContext);
+
         if (exceptionSession != null && (System.currentTimeMillis() - exceptionSession.sessionMillis) > 1000) {
 
             exceptionSession.throwable.printStackTrace();
@@ -32,7 +34,11 @@ public class NettyServerReconnectHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext channelHandlerContext, Throwable throwable) {
         if (throwable instanceof IOException) {
             exceptionSession = new ExceptionSession(System.currentTimeMillis(), throwable);
+
+            return;
         }
+
+        throwable.printStackTrace();
     }
 
 

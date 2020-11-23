@@ -24,6 +24,8 @@ import org.stonlexx.gamelibrary.core.netty.handler.server.reconnect.EnumReconnec
 import org.stonlexx.gamelibrary.core.netty.handler.server.reconnect.NettyServerReconnectHandler;
 import org.stonlexx.gamelibrary.core.netty.packet.codec.NettyPacketDecoder;
 import org.stonlexx.gamelibrary.core.netty.packet.codec.NettyPacketEncoder;
+import org.stonlexx.gamelibrary.core.netty.packet.codec.frame.Varint21FrameDecoder;
+import org.stonlexx.gamelibrary.core.netty.packet.codec.frame.Varint21LengthFieldEncoder;
 import org.stonlexx.gamelibrary.core.netty.packet.handler.NettyPacketHandler;
 
 import java.net.InetSocketAddress;
@@ -140,7 +142,7 @@ public final class NettyBootstrap {
         return future -> {
 
             NettyServerReconnectHandler serverReconnectHandler
-                    = (NettyServerReconnectHandler) future.channel().pipeline().get("reconnect-handler");
+                    = (NettyServerReconnectHandler) future.channel().pipeline().get("netty-reconnect-handler");
 
             if (serverReconnectHandler != null && !future.isSuccess()) {
                 serverReconnectHandler.tryReconnect(future.channel(), EnumReconnectReason.CHANNEL_INACTIVE, null);
@@ -216,7 +218,7 @@ public final class NettyBootstrap {
             // server reconnect
             if (nettyReconnect != null) {
                 socketChannel.attr(AttributeKey.valueOf("reconnect-handler")).set(nettyReconnect);
-                socketChannel.pipeline().addLast("reconnect-handler", new NettyServerReconnectHandler(nettyReconnect));
+                socketChannel.pipeline().addLast("netty-reconnect-handler", new NettyServerReconnectHandler(nettyReconnect));
             }
 
         }, hasStandardCodec);
@@ -229,7 +231,7 @@ public final class NettyBootstrap {
      * @param systemConsumer   - общий консумер, который обрабатывает данные, зависимые от типа бутстрапа
      * @param hasStandardCodec - разрешение на установку стандартных кодеков
      */
-    public ChannelInitializer<NioSocketChannel> createChannelInitializer(Consumer<NioSocketChannel> channelConsumer,
+    private ChannelInitializer<NioSocketChannel> createChannelInitializer(Consumer<NioSocketChannel> channelConsumer,
                                                                          Consumer<NioSocketChannel> systemConsumer,
 
                                                                          boolean hasStandardCodec) {
@@ -240,12 +242,15 @@ public final class NettyBootstrap {
 
                 // check allow to set default codecs by library
                 if (hasStandardCodec) {
-                    socketChannel.pipeline().addLast("packet-decoder", new NettyPacketDecoder());
-                    socketChannel.pipeline().addLast("packet-encoder", new NettyPacketEncoder());
+                    socketChannel.pipeline().addLast("netty-frame-decoder", new Varint21FrameDecoder());
+                    socketChannel.pipeline().addLast("netty-frame-prepender", new Varint21LengthFieldEncoder());
+
+                    socketChannel.pipeline().addAfter("netty-frame-decoder", "netty-packet-decoder", new NettyPacketDecoder());
+                    socketChannel.pipeline().addAfter("netty-frame-prepender", "netty-packet-encoder", new NettyPacketEncoder());
                 }
 
                 // other handlers
-                socketChannel.pipeline().addLast("packet-handler", new NettyPacketHandler());
+                socketChannel.pipeline().addLast("netty-packet-handler", new NettyPacketHandler());
 
                 // submit consumers
                 if (channelConsumer != null) channelConsumer.accept(socketChannel);
@@ -270,12 +275,15 @@ public final class NettyBootstrap {
 
                 // check allow to set default codecs by library
                 if (hasStandardCodec) {
-                    socketChannel.pipeline().addLast("packet-decoder", new NettyPacketDecoder());
-                    socketChannel.pipeline().addLast("packet-encoder", new NettyPacketEncoder());
+                    socketChannel.pipeline().addLast("netty-frame-decoder", new Varint21FrameDecoder());
+                    socketChannel.pipeline().addLast("netty-frame-prepender", new Varint21LengthFieldEncoder());
+
+                    socketChannel.pipeline().addAfter("netty-frame-decoder", "netty-packet-decoder", new NettyPacketDecoder());
+                    socketChannel.pipeline().addAfter("netty-frame-prepender", "netty-packet-encoder", new NettyPacketEncoder());
                 }
 
                 // other handlers
-                socketChannel.pipeline().addLast("packet-handler", new NettyPacketHandler());
+                socketChannel.pipeline().addLast("netty-packet-handler", new NettyPacketHandler());
 
                 // submit consumers
                 if (channelConsumer != null) channelConsumer.accept(socketChannel);
