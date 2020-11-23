@@ -39,7 +39,7 @@ public class PercentUtil {
         Preconditions.checkArgument(currentPercent <= 100, "Percentage " + currentPercent + " has not been > 100");
 
         double randomPercent = NumberUtil.randomDouble(0, 100);
-        return currentPercent <= randomPercent;
+        return randomPercent <= currentPercent;
     }
 
     /**
@@ -55,7 +55,7 @@ public class PercentUtil {
         Preconditions.checkArgument(currentPercent <= 100, "Percentage " + currentPercent + " has not been > 100");
 
         double randomPercent = NumberUtil.randomDouble(0, 100);
-        percentConsumer.accept(currentPercent <= randomPercent, randomPercent);
+        percentConsumer.accept(randomPercent <= currentPercent, randomPercent);
     }
 
 
