@@ -16,17 +16,19 @@ public class ThreadTestingFactory extends TestingFactory<ThreadTest> {
 
     @Override
     @SneakyThrows
-    public void executeTests(@NonNull Class<?> classWithTestMethods, Consumer<Method> testMethodConsumer) {
-        Method[] testMethodArray = classWithTestMethods.getMethods();
+    public void executeTests(@NonNull Object objectWithTestMethods, Consumer<Method> testMethodConsumer) {
+        Method[] testMethodArray = objectWithTestMethods.getClass().getMethods();
 
         for (Method testMethod : testMethodArray) {
             if (!testMethodCollection.contains(testMethod)) {
                 continue;
             }
 
-            testMethodConsumer.accept(testMethod);
-            testMethod.invoke(testMethod.getDefaultValue(), new Object[testMethod.getParameterCount()]);
+            if (testMethodConsumer != null) {
+                testMethodConsumer.accept(testMethod);
+            }
+
+            testMethod.invoke(objectWithTestMethods, new Object[testMethod.getParameterCount()]);
         }
     }
-
 }

@@ -3,9 +3,10 @@ package org.stonlexx.gamelibrary.test;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.reflections.Reflections;
+import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.scanners.ResourcesScanner;
-import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
@@ -46,7 +47,7 @@ public abstract class TestingFactory<T extends Annotation> {
         Reflections reflections = new Reflections(new ConfigurationBuilder()
                 .setUrls(ClasspathHelper.forClassLoader(classLoadersList.toArray(new ClassLoader[0])))
 
-                .setScanners(new SubTypesScanner(false), new ResourcesScanner())
+                .setScanners(new MethodAnnotationsScanner(), new ResourcesScanner())
                 .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(mainPackage))));
 
         this.classesWithTestMethodsCollection = new ArrayList<>();
@@ -64,13 +65,25 @@ public abstract class TestingFactory<T extends Annotation> {
     }
 
     /**
+     * Применить все тестовые методы указанного объекта,
+     * обработав их через Consumer
+     *
+     * @param objectWithTestMethods - класс, из которого черпать тест методы
+     * @param testMethodConsumer - обработчик тестовых методов
+     */
+    public abstract void executeTests(@NonNull Object objectWithTestMethods, Consumer<Method> testMethodConsumer);
+
+    /**
      * Применить все тестовые методы указанного класса,
      * обработав их через Consumer
      *
      * @param classWithTestMethods - класс, из которого черпать тест методы
      * @param testMethodConsumer - обработчик тестовых методов
      */
-    public abstract void executeTests(@NonNull Class<?> classWithTestMethods, Consumer<Method> testMethodConsumer);
+    @SneakyThrows
+    public void executeTests(@NonNull Class<?> classWithTestMethods, Consumer<Method> testMethodConsumer) {
+        executeTests(classWithTestMethods.getConstructor().newInstance(), testMethodConsumer);
+    }
 
     /**
      * Применить все тестовые методы, обработав
