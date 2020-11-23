@@ -21,10 +21,27 @@ public class AsyncUtil {
     /**
      * Пропидорить раннебл в аснхронном потоке
      *
-     * @param command - раннебл
+     * @param command - асихронная команда
      */
     public void submitAsync(Runnable command) {
         EXECUTOR_SERVICE.submit(command);
+    }
+
+    /**
+     * Пропидорить раннебл в аснхронном потоке
+     *
+     * @param throwableAsynchronousCommand - асихронная команда
+     */
+    public void submitThrowsAsync(ThrowableAsynchronousCommand throwableAsynchronousCommand) {
+        submitAsync(() -> {
+            try {
+                throwableAsynchronousCommand.submitCommand();
+            }
+
+            catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        });
     }
 
     /**
@@ -38,6 +55,12 @@ public class AsyncUtil {
                 = CompletableFuture.supplyAsync(futureSupplier);
 
         return completableFuture.get();
+    }
+
+    public interface ThrowableAsynchronousCommand {
+
+        void submitCommand()
+                throws Exception;
     }
 
 }

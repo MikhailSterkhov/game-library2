@@ -1,7 +1,6 @@
 package org.stonlexx.gamelibrary.test.impl;
 
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import org.stonlexx.gamelibrary.test.AsyncTest;
 import org.stonlexx.gamelibrary.test.TestingFactory;
 import org.stonlexx.gamelibrary.utility.query.AsyncUtil;
@@ -16,7 +15,6 @@ public class AsynchronousTestingFactory extends TestingFactory<AsyncTest> {
     }
 
     @Override
-    @SneakyThrows
     public void executeTests(@NonNull Class<?> classWithTestMethods, Consumer<Method> testMethodConsumer) {
         Method[] testMethodArray = classWithTestMethods.getMethods();
 
@@ -25,7 +23,7 @@ public class AsynchronousTestingFactory extends TestingFactory<AsyncTest> {
                 continue;
             }
 
-            AsyncUtil.submitAsync(() -> {
+            AsyncUtil.submitThrowsAsync(() -> {
 
                 testMethodConsumer.accept(testMethod);
                 testMethod.invoke(testMethod.getDefaultValue(), new Object[testMethod.getParameterCount()]);
