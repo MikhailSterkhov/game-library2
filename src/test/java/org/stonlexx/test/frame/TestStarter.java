@@ -1,7 +1,7 @@
 package org.stonlexx.test.frame;
 
-import org.stonlexx.gamelibrary.core.frame.BaseFrame;
-import org.stonlexx.gamelibrary.core.frame.component.ComponentBuilder;
+import org.stonlexx.gamelibrary.common.frame.BaseFrame;
+import org.stonlexx.gamelibrary.common.frame.component.ComponentBuilder;
 
 import javax.swing.*;
 import java.awt.*;

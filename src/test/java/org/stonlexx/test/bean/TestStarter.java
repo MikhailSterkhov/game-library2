@@ -1,8 +1,8 @@
 package org.stonlexx.test.bean;
 
 import org.stonlexx.gamelibrary.GameLibrary;
-import org.stonlexx.gamelibrary.core.bean.manager.BeanManager;
-import org.stonlexx.gamelibrary.core.configuration.PropertyConfigurationManager;
+import org.stonlexx.gamelibrary.common.bean.manager.BeanManager;
+import org.stonlexx.gamelibrary.common.configuration.PropertyConfigurationManager;
 
 public class TestStarter {
 

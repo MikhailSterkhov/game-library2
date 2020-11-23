@@ -1,7 +1,7 @@
 package org.stonlexx.test.bean;
 
 import lombok.Getter;
-import org.stonlexx.gamelibrary.core.bean.*;
+import org.stonlexx.gamelibrary.common.bean.*;
 
 @Getter
 @Bean

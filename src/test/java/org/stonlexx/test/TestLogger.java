@@ -1,6 +1,6 @@
 package org.stonlexx.test;
 
-import org.stonlexx.gamelibrary.core.CoreLogger;
+import org.stonlexx.gamelibrary.common.CommonLogger;
 
 import java.util.logging.LogRecord;
 
@@ -14,7 +14,7 @@ import java.util.logging.LogRecord;
  * После чего, геттер логгера, который также получается
  * из {@link org.stonlexx.gamelibrary.GameLibrary}, будет возвращать именно Ваш логгер
  */
-public class TestLogger extends CoreLogger {
+public class TestLogger extends CommonLogger {
 
     @Override
     public void log(LogRecord logRecord) {

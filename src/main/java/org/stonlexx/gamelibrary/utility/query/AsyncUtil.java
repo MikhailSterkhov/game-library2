@@ -1,9 +1,12 @@
 package org.stonlexx.gamelibrary.utility.query;
 
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 
 @UtilityClass
 public class AsyncUtil {
@@ -21,7 +24,20 @@ public class AsyncUtil {
      * @param command - раннебл
      */
     public void submitAsync(Runnable command) {
-        EXECUTOR_SERVICE.submit( command );
+        EXECUTOR_SERVICE.submit(command);
+    }
+
+    /**
+     * Создать объект в асинхронном потобке
+     *
+     * @param futureSupplier - обработчик создания объекта
+     */
+    @SneakyThrows
+    public <T> T supplyAsyncFuture(Supplier<T> futureSupplier) {
+        CompletableFuture<T> completableFuture
+                = CompletableFuture.supplyAsync(futureSupplier);
+
+        return completableFuture.get();
     }
 
 }

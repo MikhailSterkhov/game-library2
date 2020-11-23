@@ -1,12 +1,12 @@
 package org.stonlexx.test.netty;
 
 import org.stonlexx.gamelibrary.GameLibrary;
-import org.stonlexx.gamelibrary.core.CoreLogger;
-import org.stonlexx.gamelibrary.core.netty.bootstrap.NettyBootstrap;
-import org.stonlexx.gamelibrary.core.netty.bootstrap.impl.NettyServer;
-import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
-import org.stonlexx.gamelibrary.core.netty.handler.client.active.impl.NettyConsumerClientActive;
-import org.stonlexx.gamelibrary.core.netty.handler.client.inactive.impl.NettyConsumerClientInactive;
+import org.stonlexx.gamelibrary.common.CommonLogger;
+import org.stonlexx.gamelibrary.common.netty.bootstrap.NettyBootstrap;
+import org.stonlexx.gamelibrary.common.netty.bootstrap.impl.NettyServer;
+import org.stonlexx.gamelibrary.common.netty.packet.typing.NettyPacketDirection;
+import org.stonlexx.gamelibrary.common.netty.handler.client.active.impl.NettyConsumerClientActive;
+import org.stonlexx.gamelibrary.common.netty.handler.client.inactive.impl.NettyConsumerClientInactive;
 import org.stonlexx.test.netty.packet.CallbackTestPacket;
 import org.stonlexx.test.netty.packet.IntTestPacket;
 import org.stonlexx.test.netty.packet.StringTestPacket;
@@ -14,14 +14,14 @@ import org.stonlexx.test.netty.packet.StringTestPacket;
 public class ServerStarter {
 
     public static void main(String[] args) {
-        CoreLogger coreLogger = GameLibrary.getInstance().getLogger();
+        CommonLogger commonLogger = GameLibrary.getInstance().getLogger();
 
         NettyBootstrap nettyBootstrap = GameLibrary.getInstance().getNettyManager().getNettyBootstrap();
         NettyServer nettyServer = nettyBootstrap.createLocalServer(1337);
 
         // парочка классных уникальных фич для серверного бутстрапа
-        nettyServer.addNettyClientInactive(new NettyConsumerClientInactive(channel -> coreLogger.info(channel.remoteAddress() + " has been disconnected!")));
-        nettyServer.addNettyClientActive(new NettyConsumerClientActive(channel -> coreLogger.info(channel.remoteAddress() + " was success connected! (id:" + nettyServer.getClientChannelMap().size() + ")")));
+        nettyServer.addNettyClientInactive(new NettyConsumerClientInactive(channel -> commonLogger.info(channel.remoteAddress() + " has been disconnected!")));
+        nettyServer.addNettyClientActive(new NettyConsumerClientActive(channel -> commonLogger.info(channel.remoteAddress() + " was success connected! (id:" + nettyServer.getClientChannelMap().size() + ")")));
 
         // установка стандартных кодеков, если нужно установить свои,
         //то это можно сделать через setChannelInitializer()

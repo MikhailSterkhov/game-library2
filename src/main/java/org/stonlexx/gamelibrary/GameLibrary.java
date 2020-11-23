@@ -4,12 +4,12 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.Getter;
 import lombok.Setter;
-import org.stonlexx.gamelibrary.core.CoreLogger;
-import org.stonlexx.gamelibrary.core.bean.manager.BeanManager;
-import org.stonlexx.gamelibrary.core.configuration.PropertyConfigurationManager;
-import org.stonlexx.gamelibrary.core.event.EventManager;
-import org.stonlexx.gamelibrary.core.netty.NettyManager;
-import org.stonlexx.gamelibrary.core.scheduler.SchedulerManager;
+import org.stonlexx.gamelibrary.common.CommonLogger;
+import org.stonlexx.gamelibrary.common.bean.manager.BeanManager;
+import org.stonlexx.gamelibrary.common.configuration.PropertyConfigurationManager;
+import org.stonlexx.gamelibrary.common.event.EventManager;
+import org.stonlexx.gamelibrary.common.netty.NettyManager;
+import org.stonlexx.gamelibrary.common.scheduler.SchedulerManager;
 
 import java.lang.invoke.MethodHandles;
 
@@ -38,6 +38,6 @@ public final class GameLibrary {
 
 
     @Setter
-    private CoreLogger logger                                                           = new CoreLogger();
+    private CommonLogger logger                                                           = new CommonLogger();
 
 }

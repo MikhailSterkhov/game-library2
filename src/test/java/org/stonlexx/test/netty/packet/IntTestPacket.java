@@ -2,8 +2,8 @@ package org.stonlexx.test.netty.packet;
 
 import io.netty.channel.Channel;
 import org.stonlexx.gamelibrary.GameLibrary;
-import org.stonlexx.gamelibrary.core.netty.packet.buf.NettyPacketBuffer;
-import org.stonlexx.gamelibrary.core.netty.packet.impl.AbstractNettyPacket;
+import org.stonlexx.gamelibrary.common.netty.packet.buf.NettyPacketBuffer;
+import org.stonlexx.gamelibrary.common.netty.packet.impl.AbstractNettyPacket;
 
 public class IntTestPacket extends AbstractNettyPacket {
 

@@ -2,13 +2,13 @@ package org.stonlexx.test.netty;
 
 import lombok.NonNull;
 import org.stonlexx.gamelibrary.GameLibrary;
-import org.stonlexx.gamelibrary.core.CoreLogger;
-import org.stonlexx.gamelibrary.core.netty.bootstrap.NettyBootstrap;
-import org.stonlexx.gamelibrary.core.netty.bootstrap.impl.NettyClient;
-import org.stonlexx.gamelibrary.core.netty.handler.server.active.impl.NettyConsumerServerActive;
-import org.stonlexx.gamelibrary.core.netty.handler.server.reconnect.impl.NettyPrintableReconnect;
-import org.stonlexx.gamelibrary.core.netty.packet.callback.NettyPacketCallbackHandler;
-import org.stonlexx.gamelibrary.core.netty.packet.typing.NettyPacketDirection;
+import org.stonlexx.gamelibrary.common.CommonLogger;
+import org.stonlexx.gamelibrary.common.netty.bootstrap.NettyBootstrap;
+import org.stonlexx.gamelibrary.common.netty.bootstrap.impl.NettyClient;
+import org.stonlexx.gamelibrary.common.netty.handler.server.active.impl.NettyConsumerServerActive;
+import org.stonlexx.gamelibrary.common.netty.handler.server.reconnect.impl.NettyPrintableReconnect;
+import org.stonlexx.gamelibrary.common.netty.packet.callback.NettyPacketCallbackHandler;
+import org.stonlexx.gamelibrary.common.netty.packet.typing.NettyPacketDirection;
 import org.stonlexx.test.netty.handler.TestConnectionHandler;
 import org.stonlexx.test.netty.packet.CallbackTestPacket;
 import org.stonlexx.test.netty.packet.IntTestPacket;
@@ -17,7 +17,7 @@ import org.stonlexx.test.netty.packet.StringTestPacket;
 public class ClientStarter {
 
     public static void main(String[] args) {
-        CoreLogger coreLogger = GameLibrary.getInstance().getLogger();
+        CommonLogger commonLogger = GameLibrary.getInstance().getLogger();
 
         NettyBootstrap nettyBootstrap = GameLibrary.getInstance().getNettyManager().getNettyBootstrap();
         NettyClient nettyClient = nettyBootstrap.createLocalClient(1337);
@@ -25,7 +25,7 @@ public class ClientStarter {
         // парочка классных уникальных фич для клиентского бутстрапа
         nettyClient.addNettyServerActive(new NettyConsumerServerActive(channel -> {
 
-            coreLogger.info("Server " + channel.remoteAddress() + " activated!");
+            commonLogger.info("Server " + channel.remoteAddress() + " activated!");
 
             // test callback packet
             nettyClient.getServerConnection().sendPacket(new CallbackTestPacket("<*> Callback has received!"), new NettyPacketCallbackHandler<CallbackTestPacket>() {

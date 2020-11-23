@@ -1,8 +1,8 @@
 package org.stonlexx.test.mysql;
 
-import org.stonlexx.gamelibrary.core.mysql.MysqlConnection;
-import org.stonlexx.gamelibrary.core.mysql.MysqlConnectionBuilder;
-import org.stonlexx.gamelibrary.core.mysql.MysqlDatabaseConnection;
+import org.stonlexx.gamelibrary.common.mysql.MysqlConnection;
+import org.stonlexx.gamelibrary.common.mysql.MysqlConnectionBuilder;
+import org.stonlexx.gamelibrary.common.mysql.MysqlDatabaseConnection;
 
 public class TestStarter {
 
