@@ -1,8 +1,8 @@
-package org.stonlexx.gamelibrary.test.impl;
+package org.stonlexx.gamelibrary.utility.test.impl;
 
 import lombok.NonNull;
-import org.stonlexx.gamelibrary.test.AsyncTest;
-import org.stonlexx.gamelibrary.test.TestingFactory;
+import org.stonlexx.gamelibrary.utility.test.AsyncTest;
+import org.stonlexx.gamelibrary.utility.test.TestingFactory;
 import org.stonlexx.gamelibrary.utility.query.AsyncUtil;
 
 import java.lang.reflect.Method;

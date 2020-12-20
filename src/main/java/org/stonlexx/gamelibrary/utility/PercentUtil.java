@@ -58,5 +58,4 @@ public class PercentUtil {
         percentConsumer.accept(randomPercent <= currentPercent, randomPercent);
     }
 
-
 }

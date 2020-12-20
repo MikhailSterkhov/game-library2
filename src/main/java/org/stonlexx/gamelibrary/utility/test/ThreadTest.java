@@ -1,4 +1,4 @@
-package org.stonlexx.gamelibrary.test;
+package org.stonlexx.gamelibrary.utility.test;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -10,5 +10,5 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Retention(RUNTIME)
 @Target(METHOD)
-public @interface AsyncTest {
+public @interface ThreadTest {
 }

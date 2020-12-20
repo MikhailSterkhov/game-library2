@@ -9,7 +9,6 @@ import org.stonlexx.gamelibrary.utility.query.ThrowableResponseHandler;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -147,7 +146,7 @@ public class MysqlDatabaseConnection {
         };
 
         if (asyncQuery) {
-            return CompletableFuture.supplyAsync(supplier).get();
+            return AsyncUtil.supplyAsyncFuture(supplier);
         }
 
         return supplier.get();
@@ -166,7 +165,19 @@ public class MysqlDatabaseConnection {
                                                @NonNull String tableStructure) {
 
         execute(asyncQuery, String.format("CREATE TABLE IF NOT EXISTS `%s` (%s)", mysqlTable, tableStructure));
+        return this;
+    }
 
+    /**
+     * Асинхронно создать таблицу в схеме базы данных
+     *
+     * @param mysqlTable - имя таблицы
+     * @param tableStructure - структура таблицы
+     */
+    public MysqlDatabaseConnection createTable(@NonNull String mysqlTable,
+                                               @NonNull String tableStructure) {
+
+        execute(true, String.format("CREATE TABLE IF NOT EXISTS `%s` (%s)", mysqlTable, tableStructure));
         return this;
     }
 

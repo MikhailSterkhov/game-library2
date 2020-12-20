@@ -2,9 +2,11 @@ package org.stonlexx.gamelibrary.common.configuration;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import org.stonlexx.gamelibrary.common.configuration.property.CommonProperty;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
@@ -28,6 +30,16 @@ public final class PropertyConfigurationManager {
                                          @NonNull String resourceName) {
 
         addPropertyConfiguration(classLoader.getResource(resourceName), resourceName);
+    }
+
+    /**
+     * Добавить Property конфигурацию в кеш
+     *
+     * @param file - проперти файл
+     */
+    @SneakyThrows
+    public void addPropertyConfiguration(@NonNull File file) {
+        addPropertyConfiguration(file.toURL(), file.getName());
     }
 
     /**
@@ -65,6 +77,38 @@ public final class PropertyConfigurationManager {
 
         if (!corePropertyMap.containsKey(resourceName.toLowerCase())) {
             addPropertyConfiguration(classLoader, resourceName);
+        }
+
+        return corePropertyMap.get(resourceName.toLowerCase());
+    }
+
+    /**
+     * Получить кешированную Property конфигурацию
+     *
+     * @param resourceStream - хранилище данных ресурса
+     * @param resourceName - мя получаемого ресурса
+     */
+    public CommonProperty getPropertyConfiguration(@NonNull URL resourceStream,
+                                                   @NonNull String resourceName) {
+
+        if (!corePropertyMap.containsKey(resourceName.toLowerCase())) {
+            addPropertyConfiguration(resourceStream, resourceName);
+        }
+
+        return corePropertyMap.get(resourceName.toLowerCase());
+    }
+
+    /**
+     * Получить кешированную Property конфигурацию
+     *
+     * @param file - проперти файл
+     */
+    @SneakyThrows
+    public CommonProperty getPropertyConfiguration(@NonNull File file) {
+        String resourceName = file.getName();
+
+        if (!corePropertyMap.containsKey(resourceName.toLowerCase())) {
+            addPropertyConfiguration(file.toURL(), resourceName);
         }
 
         return corePropertyMap.get(resourceName.toLowerCase());

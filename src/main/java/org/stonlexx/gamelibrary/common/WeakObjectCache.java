@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import org.stonlexx.gamelibrary.utility.ValidatedObject;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
@@ -53,6 +54,16 @@ public class WeakObjectCache {
                            @NonNull String objectName) {
 
         return getWeakObject(objectType, objectName).get();
+    }
+
+    /**
+     * Получить объект из хранилища, который хранится
+     * по определенному имени данных
+     *
+     * @param objectName - имя данных для объекта
+     */
+    public ValidatedObject getValidatedObject(@NonNull String objectName) {
+        return new ValidatedObject(getObject(Object.class, objectName));
     }
 
     /**

@@ -1,8 +1,8 @@
 package org.stonlexx.test.testing;
 
-import org.stonlexx.gamelibrary.test.AsyncTest;
-import org.stonlexx.gamelibrary.test.Testing;
-import org.stonlexx.gamelibrary.test.TestingFactory;
+import org.stonlexx.gamelibrary.utility.test.AsyncTest;
+import org.stonlexx.gamelibrary.utility.test.Testing;
+import org.stonlexx.gamelibrary.utility.test.TestingFactory;
 
 public class TestStarter {
 

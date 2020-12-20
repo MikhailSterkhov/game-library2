@@ -1,4 +1,4 @@
-package org.stonlexx.gamelibrary.test;
+package org.stonlexx.gamelibrary.utility.test;
 
 import lombok.Getter;
 import lombok.NonNull;

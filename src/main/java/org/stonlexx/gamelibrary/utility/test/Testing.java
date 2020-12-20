@@ -1,9 +1,9 @@
-package org.stonlexx.gamelibrary.test;
+package org.stonlexx.gamelibrary.utility.test;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.stonlexx.gamelibrary.test.impl.AsynchronousTestingFactory;
-import org.stonlexx.gamelibrary.test.impl.ThreadTestingFactory;
+import org.stonlexx.gamelibrary.utility.test.impl.AsynchronousTestingFactory;
+import org.stonlexx.gamelibrary.utility.test.impl.ThreadTestingFactory;
 
 @RequiredArgsConstructor
 public enum Testing {

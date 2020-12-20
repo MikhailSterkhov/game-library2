@@ -1,9 +1,9 @@
-package org.stonlexx.gamelibrary.test.impl;
+package org.stonlexx.gamelibrary.utility.test.impl;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
-import org.stonlexx.gamelibrary.test.TestingFactory;
-import org.stonlexx.gamelibrary.test.ThreadTest;
+import org.stonlexx.gamelibrary.utility.test.TestingFactory;
+import org.stonlexx.gamelibrary.utility.test.ThreadTest;
 
 import java.lang.reflect.Method;
 import java.util.function.Consumer;
