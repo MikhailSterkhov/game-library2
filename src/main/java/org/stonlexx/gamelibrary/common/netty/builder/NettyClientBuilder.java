@@ -218,4 +218,30 @@ public class NettyClientBuilder<K> {
         return bootstrap;
     }
 
+    /**
+     * После указания всех настроек и инициализации
+     * всех необходимых данных и переменных,
+     * подключаем клиент к серверу, вызывая указанные
+     * слушатели и приводя в работу обработчики
+     */
+    public Bootstrap connectToServer(int nThreads) {
+        if (channelInitializer == null) {
+            channelInitializer((Consumer<NioSocketChannel>) null);
+        }
+
+        if (channelFutureListener == null) {
+            futureListener((ChannelFutureListener) null);
+        }
+
+        Bootstrap bootstrap = nettyBootstrap.createClientBootstrap(inetSocketAddress, channelFutureListener, channelInitializer, nThreads);
+
+        if (nettyReconnect != null) {
+            nettyReconnect.setConnectRunnable(
+                    () -> nettyBootstrap.createClientBootstrap(inetSocketAddress, channelFutureListener, channelInitializer, nThreads)
+            );
+        }
+
+        return bootstrap;
+    }
+
 }

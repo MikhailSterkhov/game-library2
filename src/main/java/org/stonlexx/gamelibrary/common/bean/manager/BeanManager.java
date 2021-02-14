@@ -2,6 +2,7 @@ package org.stonlexx.gamelibrary.common.bean.manager;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -32,7 +33,7 @@ public final class BeanManager {
      *
      * @param beanScanPackage - основной пакейдж для поиска
      */
-    public void scanPackages(String beanScanPackage) {
+    public void scanPackages(@NonNull String beanScanPackage) {
         List<ClassLoader> classLoadersList = new LinkedList<>();
 
         classLoadersList.add(ClasspathHelper.contextClassLoader());
@@ -85,7 +86,7 @@ public final class BeanManager {
      * Зарегистрировать новый бин
      *
      * @param beanClass - класс бина
-     * @param beanName - кастомное имя бина
+     * @param beanName  - кастомное имя бина
      */
     public void registerBean(@NonNull Class<?> beanClass,
                              @NonNull String beanName) {
@@ -99,92 +100,91 @@ public final class BeanManager {
      * Зарегистрировать новый бин
      *
      * @param beanClass - класс бина
-     * @param beanName - кастомное имя бина
+     * @param beanName  - кастомное имя бина
      * @param beanScope - видимость бина
      */
+    @SneakyThrows
     public <T> void registerBean(@NonNull Class<T> beanClass,
                                  @NonNull String beanName,
                                  @NonNull EnumBeanScope beanScope) {
-        try {
-            // initialize bean
+        // initialize bean
 
-            T beanObject = null;
-            Constructor<?>[] beanConstructorArray = beanClass.getConstructors();
+        T beanObject = null;
+        Constructor<?>[] beanConstructorArray = beanClass.getConstructors();
 
-            if (beanConstructorArray.length <= 1) {
-                beanObject = beanClass.getDeclaredConstructor().newInstance();
+        if (beanConstructorArray.length <= 1) {
 
-            } else {
-                int constructorCounter = 0;
+            Constructor<T> constructor = beanClass.getDeclaredConstructor();
+            constructor.setAccessible(true);
 
-                for (Constructor<?> beanConstructor : beanConstructorArray) {
-                    QualifierConstructor qualifierConstructor = beanConstructor.getAnnotation(QualifierConstructor.class);
+            beanObject = constructor.newInstance();
 
-                    if (qualifierConstructor != null) {
-                        beanObject = newBeanByConstructor(beanClass, beanConstructor);
-                        break;
-                    }
+        } else {
+            int constructorCounter = 0;
 
-                    constructorCounter++;
-                    if (constructorCounter > 1) {
-                        throw new BeanException(beanName + " - constructors length > 1, please qualifier a required constructor by @QualifierConstructor");
-                    }
+            for (Constructor<?> beanConstructor : beanConstructorArray) {
+                QualifierConstructor qualifierConstructor = beanConstructor.getAnnotation(QualifierConstructor.class);
+
+                if (qualifierConstructor != null) {
+                    beanObject = newBeanByConstructor(beanClass, beanConstructor);
+                    break;
+                }
+
+                constructorCounter++;
+                if (constructorCounter > 1) {
+                    throw new BeanException(beanName + " - constructors length > 1, please qualifier a required constructor by @QualifierConstructor");
                 }
             }
+        }
 
-            // initialize fields
-            for (Field field : beanClass.getDeclaredFields()) {
-                field.setAccessible(true);
+        // initialize fields
+        for (Field field : beanClass.getDeclaredFields()) {
+            field.setAccessible(true);
 
-                BeanQualifier beanQualifier = field.getDeclaredAnnotation(BeanQualifier.class);
-                BeanValue beanValue = field.getDeclaredAnnotation(BeanValue.class);
+            BeanQualifier beanQualifier = field.getDeclaredAnnotation(BeanQualifier.class);
+            BeanValue beanValue = field.getDeclaredAnnotation(BeanValue.class);
 
-                if (beanQualifier != null) {
-                    BeanObject<?> qualifierBean = getBean(beanQualifier.value());
+            if (beanQualifier != null) {
+                BeanObject<?> qualifierBean = getBean(beanQualifier.value());
 
-                    if (qualifierBean == null) {
-                        throw new BeanException(beanName + " - qualifier bean(" + beanQualifier.value() + ") returns null");
-                    }
-
-                    field.set(beanObject, qualifierBean.getBeanObject());
+                if (qualifierBean == null) {
+                    throw new BeanException(beanName + " - qualifier bean(" + beanQualifier.value() + ") returns null");
                 }
 
-                if (beanValue != null) {
-                    String value = beanValue.value();
+                field.set(beanObject, qualifierBean.getBeanObject());
+            }
 
-                    if (value.startsWith("${")) {
-                        String propertyKey = value.substring(2, value.length() - 1);
+            if (beanValue != null) {
+                String value = beanValue.value();
 
-                        for (CommonProperty coreProperty : GameLibrary.getInstance().getPropertyManager().getCorePropertyMap().values()) {
-                            String propertyValue = coreProperty.getProperty(propertyKey);
+                if (value.startsWith("${")) {
+                    String propertyKey = value.substring(2, value.length() - 1);
 
-                            if (propertyValue == null) {
-                                continue;
-                            }
+                    for (CommonProperty coreProperty : GameLibrary.getInstance().getPropertyManager().getCorePropertyMap().values()) {
+                        String propertyValue = coreProperty.getProperty(propertyKey);
 
-                            field.set(beanObject, field.getType().cast(propertyValue));
+                        if (propertyValue == null) {
+                            continue;
                         }
 
-                    } else {
-                        field.set(beanObject, field.getType().cast(value));
+                        field.set(beanObject, field.getType().cast(propertyValue));
                     }
+
+                } else {
+                    field.set(beanObject, field.getType().cast(value));
                 }
             }
-
-            // register bean
-            registerBean(beanClass, beanName, beanScope, beanObject);
         }
 
-        catch (Throwable exception) {
-            exception.printStackTrace();
-        }
+        // register bean
+        registerBean(beanClass, beanName, beanScope, beanObject);
     }
 
     /**
      * Зарегистрировать новый бин
      *
      * @param beanClass - класс бина
-     * @param beanName - кастомное имя бина
+     * @param beanName  - кастомное имя бина
      * @param beanScope - видимость бина
      */
     public <T> void registerBean(@NonNull Class<T> beanClass,
@@ -201,9 +201,9 @@ public final class BeanManager {
     private <T> T newBeanByConstructor(@NonNull Class<T> beanClass,
                                        @NonNull Constructor<?> beanConstructor) throws Exception {
 
+        beanConstructor.setAccessible(true);
         Collection<Object> constructorParameters = new ArrayList<>();
 
-        int parameterCounter = 0;
         for (Parameter constructorParameter : beanConstructor.getParameters()) {
             BeanObject<?> beanObject = getBean(constructorParameter.getType());
 
@@ -218,30 +218,29 @@ public final class BeanManager {
             }
 
             constructorParameters.add(beanObject.getBeanObject());
-            parameterCounter++;
         }
 
         return (T) beanConstructor.newInstance(constructorParameters.toArray());
     }
 
+    @SneakyThrows
     private void beanAnnotationMethodInvoke(@NonNull String beanName,
                                             @NonNull Class<? extends Annotation> annotationClass) {
 
         BeanObject<?> beanObject = getBean(beanName);
 
-        try {
-            for (Method method : beanObject.getObjectType().getDeclaredMethods()) {
-
-                if (method.getDeclaredAnnotation(annotationClass) != null) {
-                    method.invoke(beanObject.getBeanObject());
-
-                    break;
-                }
-            }
+        if (beanObject == null) {
+            return;
         }
 
-        catch (Throwable exception) {
-            exception.printStackTrace();
+        for (Method method : beanObject.getObjectType().getDeclaredMethods()) {
+            method.setAccessible(true);
+
+            if (method.getDeclaredAnnotation(annotationClass) != null) {
+                method.invoke(beanObject.getBeanObject());
+
+                break;
+            }
         }
     }
 
@@ -276,7 +275,7 @@ public final class BeanManager {
      *
      * @param beanClass - имя бина
      */
-    public <T> BeanObject<T> getBean(Class<T> beanClass) {
+    public <T> BeanObject<T> getBean(@NonNull Class<T> beanClass) {
         BeanObject<T> beanObject = null;
 
         int equalBeanCounter = 0;
@@ -302,7 +301,7 @@ public final class BeanManager {
      *
      * @param beanName - имя бина
      */
-    public BeanObject<?> getBean(String beanName) {
+    public BeanObject<?> getBean(@NonNull String beanName) {
         BeanObject<?> beanObject = beanMap.get(beanName);
 
         if (beanObject == null) {

@@ -210,6 +210,28 @@ public class NettyServer implements NettyBootstrapChannel {
         this.serverBootstrap = nettyServerBuilder.bindServer();
     }
 
+    /**
+     * После указания всех настроек и инициализации
+     * всех необходимых данных и переменных,
+     * биндом порт сервера, вызывая указанные
+     * слушатели и приводя в работу обработчики
+     */
+    public void bind(int parentThreads, int childThreads) {
+        if (channelFutureListener == null) {
+            setChannelFutureListener(null);
+        }
+
+        if (channelInitializer == null) {
+            setChannelInitializer(null);
+        }
+
+        NettyServerBuilder<String> nettyServerBuilder = NettyServerBuilder.newServerBuilder(socketAddress, String.class)
+                .futureListener(channelFutureListener)
+                .channelInitializer(channelInitializer);
+
+        this.serverBootstrap = nettyServerBuilder.bindServer(parentThreads, childThreads);
+    }
+
 
     @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
     @Getter

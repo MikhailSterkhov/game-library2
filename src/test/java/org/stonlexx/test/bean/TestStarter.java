@@ -15,6 +15,8 @@ public class TestStarter {
 
         TestPlayer testPlayer = beanManager.getBean(TestPlayer.class).getBeanObject();
 
+        System.out.println("TEST " + testPlayer.getTestObject().getString());
+
         beanManager.destroy();
     }
 

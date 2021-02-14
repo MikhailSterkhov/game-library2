@@ -8,7 +8,7 @@ import lombok.experimental.UtilityClass;
 public class JsonUtil {
 
     @Getter
-    private final Gson gson = new Gson();
+    private final Gson jsonManager = new Gson();
 
 
     /**
@@ -17,7 +17,7 @@ public class JsonUtil {
      * @param object - объект
      */
     public String toJson(Object object) {
-        return gson.toJson(object);
+        return jsonManager.toJson(object);
     }
 
     /**
@@ -27,7 +27,7 @@ public class JsonUtil {
      * @param clazz - класс объекта
      */
     public <T> T fromJson(String json, Class<T> clazz) {
-        return gson.fromJson(json, clazz);
+        return jsonManager.fromJson(json, clazz);
     }
 
 }

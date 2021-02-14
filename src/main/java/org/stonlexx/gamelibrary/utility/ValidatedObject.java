@@ -1,6 +1,5 @@
 package org.stonlexx.gamelibrary.utility;
 
-import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -13,10 +12,13 @@ public class ValidatedObject {
             return null;
         }
 
-        Preconditions.checkArgument(object.getClass().isAssignableFrom(typeClass),
-                typeClass.getSimpleName() + " is`nt assignable with " + object.getClass().getSimpleName());
+        Class<?> objectClass = object.getClass();
 
-        return ((T) object);
+        if (objectClass.isAssignableFrom(typeClass)) {
+            return ((T) object);
+        }
+
+        return ((T) new Object());
     }
 
     public Object get() {

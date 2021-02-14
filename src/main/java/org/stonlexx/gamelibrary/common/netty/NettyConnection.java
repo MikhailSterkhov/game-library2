@@ -1,9 +1,7 @@
 package org.stonlexx.gamelibrary.common.netty;
 
 import io.netty.channel.Channel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.stonlexx.gamelibrary.GameLibrary;
 import org.stonlexx.gamelibrary.common.netty.packet.NettyPacket;
 import org.stonlexx.gamelibrary.common.netty.packet.callback.NettyPacketCallbackHandler;
@@ -12,12 +10,14 @@ import org.stonlexx.gamelibrary.common.netty.packet.typing.NettyPacketDirection;
 
 import java.net.InetSocketAddress;
 
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Getter
 public class NettyConnection {
 
     private final InetSocketAddress inetSocketAddress;
-    private final Channel channel;
+
+    @Setter
+    private Channel channel;
 
 
     /**

@@ -34,17 +34,60 @@ import java.util.Collection;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+@Getter
 public final class NettyBootstrap {
 
-    private final NioEventLoopGroup bossEventLoop = new NioEventLoopGroup(1);
-    private final NioEventLoopGroup workerEventLoop = new NioEventLoopGroup(2);
-
-    @Getter
     private NettyServer savedNettyServer;
-
-    @Getter
     private NettyClient savedNettyClient;
 
+
+    /**
+     * Создать клиентский bootstrap для подключения
+     * к уже заранее забиндованому серверному bootstrap
+     *
+     * @param socketAddress      - адрес серверного bootstrap
+     * @param futureListener     - ответ от подключения
+     * @param channelInitializer - инициализация канала подключения
+     */
+    public Bootstrap createClientBootstrap(@NonNull SocketAddress socketAddress,
+
+                                           ChannelFutureListener futureListener,
+                                           ChannelInitializer<NioSocketChannel> channelInitializer,
+
+                                           int nThreads) {
+
+        Bootstrap bootstrap = new Bootstrap()
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+
+                .remoteAddress(socketAddress)
+
+                .channel(NioSocketChannel.class)
+                .group(new NioEventLoopGroup(Math.max(1, nThreads)));
+
+        // add channel initializer
+        if (channelInitializer != null) {
+            bootstrap.handler(channelInitializer);
+        }
+
+        // bind bootstrap, add listener & sync
+        try {
+            ChannelFuture channelFuture = bootstrap.connect();
+
+            if (futureListener != null) {
+                channelFuture.addListener(futureListener);
+            }
+
+            channelFuture.channel().closeFuture();
+            return bootstrap;
+        }
+
+        // if you`re даун then returns null
+        catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+        return null;
+    }
 
     /**
      * Создать клиентский bootstrap для подключения
@@ -65,7 +108,7 @@ public final class NettyBootstrap {
                 .remoteAddress(socketAddress)
 
                 .channel(NioSocketChannel.class)
-                .group(bossEventLoop);
+                .group(new NioEventLoopGroup(2));
 
         // add channel initializer
         if (channelInitializer != null) {
@@ -103,6 +146,55 @@ public final class NettyBootstrap {
     public ServerBootstrap createServerBootstrap(@NonNull SocketAddress socketAddress,
 
                                                  ChannelFutureListener futureListener,
+                                                 ChannelInitializer<NioSocketChannel> channelInitializer,
+
+                                                 int parentThreads, int childThreads) {
+
+        ServerBootstrap serverBootstrap = new ServerBootstrap()
+
+                .option(ChannelOption.SO_REUSEADDR, true)
+                .option(ChannelOption.SO_BACKLOG, 120)
+                .childOption(ChannelOption.SO_KEEPALIVE, true)
+
+                .localAddress(socketAddress)
+
+                .channel(NioServerSocketChannel.class);
+
+        if (childThreads <= 0 || childThreads < parentThreads) {
+            serverBootstrap.group(new NioEventLoopGroup(parentThreads));
+
+        } else {
+
+            serverBootstrap.group(new NioEventLoopGroup(parentThreads), new NioEventLoopGroup(childThreads));
+        }
+
+        // add channel initializer
+        if (channelInitializer != null) {
+            serverBootstrap.childHandler(channelInitializer);
+        }
+
+        // bind bootstrap, add listener & sync
+        ChannelFuture channelFuture = serverBootstrap.bind();
+
+        if (futureListener != null) {
+            channelFuture.addListener(futureListener);
+        }
+
+        channelFuture.channel().closeFuture();
+        return serverBootstrap;
+    }
+
+    /**
+     * Создать серверный bootstrap для создания
+     * канала передачи байтов между клиентами
+     *
+     * @param socketAddress      - адрес серверного bootstrap
+     * @param futureListener     - ответ от подключения
+     * @param channelInitializer - инициализация канала подключения
+     */
+    public ServerBootstrap createServerBootstrap(@NonNull SocketAddress socketAddress,
+
+                                                 ChannelFutureListener futureListener,
                                                  ChannelInitializer<NioSocketChannel> channelInitializer) {
 
         ServerBootstrap serverBootstrap = new ServerBootstrap()
@@ -114,7 +206,7 @@ public final class NettyBootstrap {
                 .localAddress(socketAddress)
 
                 .channel(NioServerSocketChannel.class)
-                .group(bossEventLoop, workerEventLoop);
+                .group(new NioEventLoopGroup(1), new NioEventLoopGroup(4));
 
         // add channel initializer
         if (channelInitializer != null) {

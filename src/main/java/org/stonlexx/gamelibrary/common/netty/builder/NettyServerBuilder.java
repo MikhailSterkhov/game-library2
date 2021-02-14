@@ -208,4 +208,23 @@ public class NettyServerBuilder<K> {
         return nettyBootstrap.createServerBootstrap(inetSocketAddress, channelFutureListener, channelInitializer);
     }
 
+    /**
+     * После указания всех настроек и инициализации
+     * всех необходимых данных и переменных,
+     * биндом порт сервера, вызывая указанные
+     * слушатели и приводя в работу обработчики
+     */
+    public ServerBootstrap bindServer(int parentThreads, int childThreads) {
+        if (channelInitializer == null) {
+            channelInitializer((Consumer<NioSocketChannel>) null);
+        }
+
+        if (channelFutureListener == null) {
+            futureListener((ChannelFutureListener) null);
+        }
+
+        return nettyBootstrap.createServerBootstrap(inetSocketAddress, channelFutureListener, channelInitializer,
+                parentThreads, childThreads);
+    }
+
 }

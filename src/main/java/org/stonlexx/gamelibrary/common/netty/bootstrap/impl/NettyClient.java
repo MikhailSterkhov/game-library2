@@ -171,6 +171,32 @@ public class NettyClient implements NettyBootstrapChannel {
         this.bootstrap = nettyClientBuilder.connectToServer();
     }
 
+    /**
+     * После указания всех настроек и инициализации
+     * всех необходимых данных и переменных,
+     * подключаем клиент к серверу, вызывая указанные
+     * слушатели и приводя в работу обработчики
+     */
+    public void connect(int nThreads) {
+        if (channelFutureListener == null) {
+            setChannelFutureListener(null);
+        }
+
+        if (channelInitializer == null) {
+            setChannelInitializer(null);
+        }
+
+        NettyClientBuilder<String> nettyClientBuilder = NettyClientBuilder.newClientBuilder(socketAddress, String.class)
+                .futureListener(channelFutureListener)
+                .channelInitializer(channelInitializer);
+
+        if (nettyReconnect != null) {
+            nettyClientBuilder.reconnectHandler(nettyReconnect);
+        }
+
+        this.bootstrap = nettyClientBuilder.connectToServer(nThreads);
+    }
+
 
     @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
     @Getter

@@ -19,7 +19,7 @@ public class NumberUtil {
     public final ThreadLocalRandom LOCAL_RANDOM = ThreadLocalRandom.current();
 
     public final Pattern TIME_TO_MILLIS_PATTERN
-            = Pattern.compile("(?i)" + "(\\d{1,3}(?=ns))?" + "(\\d{1,3}(?=mc))?" + "(\\d{1,3}(?=ms))?" + "(\\d{1,3}(?=s))?" + "(\\d{1,3}(?=m))?" + "(\\d{1,3}(?=h))?" + "(\\d{1,3}(?=d))?" + "(\\d{1,3}(?=w))?");
+            = Pattern.compile("(?i)" + "(\\d{1,3}(?=ns))?" + "(\\d{1,3}(?=mc))?" + "(\\d{1,3}(?=ms))?" + "(\\d{1,3}(?=s))?" + "(\\d{1,3}(?=m))?" + "(\\d{1,3}(?=h))?" + "(\\d{1,3}(?=d))?" + "(\\d{1,3}(?=w))?"+ "(\\d{1,3}(?=y))?");
 
 
     /**
@@ -28,7 +28,7 @@ public class NumberUtil {
      * @param number - число
      * @param symbol - знак
      */
-    public String spaced(int number, String symbol) {
+    public String spaced(int number, char symbol) {
         String integer = String.valueOf(number);
         StringBuilder builder = new StringBuilder();
 
@@ -41,7 +41,7 @@ public class NumberUtil {
             builder.append(symbol);
         }
 
-        return builder.toString().substring(0, builder.toString().length() - 1);
+        return builder.substring(0, builder.toString().length() - 1);
     }
 
     /**
@@ -50,7 +50,7 @@ public class NumberUtil {
      * @param number - число
      */
     public String spaced(int number) {
-        return spaced(number, ",");
+        return spaced(number, ',');
     }
 
     /**
@@ -133,25 +133,25 @@ public class NumberUtil {
      * словосочетание
      *
      * @param number - число
-     * @param one    - словосочетание, если число закаончивается на 1
-     * @param two    - словосочетание, если число закаончивается на 2
-     * @param three  - словосочетание, если число закаончивается на 5
+     * @param single    - словосочетание, если число закаончивается на 1
+     * @param twenty    - словосочетание, если число закаончивается на 2
+     * @param other  - словосочетание, если число закаончивается на 5
      */
-    public String formatting(int number, String one, String two, String three) {
+    public String formatting(int number, String single, String twenty, String other) {
         if (number % 100 > 10 && number % 100 < 15) {
-            return number + " " + three;
+            return number + " " + other;
         }
         switch (number % 10) {
             case 1: {
-                return number + " " + one;
+                return number + " " + single;
             }
             case 2:
             case 3:
             case 4: {
-                return number + " " + two;
+                return number + " " + twenty;
             }
             default: {
-                return number + " " + three;
+                return number + " " + other;
             }
         }
     }

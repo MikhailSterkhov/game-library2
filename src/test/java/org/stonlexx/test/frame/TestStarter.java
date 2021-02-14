@@ -1,5 +1,6 @@
 package org.stonlexx.test.frame;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.stonlexx.gamelibrary.common.frame.BaseFrame;
 import org.stonlexx.gamelibrary.common.frame.component.ComponentBuilder;
 
@@ -11,6 +12,7 @@ public class TestStarter {
 
     public static void main(String[] args) {
         BaseFrame baseFrame = new BaseFrame("Test frame", new Point(350, 200), 1200, 800);
+        baseFrame.setBackground(Color.DARK_GRAY);
         baseFrame.setAllowResize(true);
 
         JTextArea textArea = baseFrame.add(ComponentBuilder.newBuilder(JTextArea.class)
@@ -30,7 +32,7 @@ public class TestStarter {
                 .location(100, 10)
                 .size(200, 20)
 
-                .accept((component1, builder1) -> component1.setText("Write your text"))
+                .accept((component1, builder1) -> component1.setText(RandomStringUtils.randomAlphabetic(15)))
                 .autoUpdater(TimeUnit.SECONDS, 1)
 
                 .build());

@@ -1,0 +1,2 @@
+--!Sample text.!!!$@fd
+TEXT ||||| SAMPLE TEXT

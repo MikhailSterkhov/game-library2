@@ -5,6 +5,11 @@ import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 @UtilityClass
 public class FileUtil {
@@ -49,6 +54,45 @@ public class FileUtil {
 
         fileOutputStream.flush();
         fileOutputStream.close();
+    }
+
+    @SneakyThrows
+    public void createAndWrite(@NonNull File file,
+                               @NonNull ThrowableFileHandler<FileWriter> fileHandler) {
+
+        if (!Files.exists(file.toPath())) {
+            Files.createFile(file.toPath());
+        }
+
+        write(file, fileHandler);
+    }
+
+    @SneakyThrows
+    public void deleteAndRead(@NonNull File file,
+                              @NonNull ThrowableFileHandler<FileReader> fileHandler) {
+
+        read(file, fileHandler);
+        Files.deleteIfExists(file.toPath());
+    }
+
+    @SneakyThrows
+    public void downloadFile(@NonNull String downloadUrl,
+                             @NonNull Path toFilePath,
+                             @NonNull ThrowableFileHandler<HttpURLConnection> preDownloadHandler) {
+
+        if (Files.exists(toFilePath)) {
+            Files.delete(toFilePath);
+        }
+
+        URLConnection urlConnection = new URL(downloadUrl).openConnection();
+        HttpURLConnection httpURLConnection = ((HttpURLConnection) urlConnection);
+
+        preDownloadHandler.handle(httpURLConnection);
+
+        Files.copy(httpURLConnection.getInputStream(), toFilePath);
+
+        System.gc();
+        httpURLConnection.disconnect();
     }
 
 

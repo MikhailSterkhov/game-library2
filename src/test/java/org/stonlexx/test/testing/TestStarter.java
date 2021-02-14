@@ -10,7 +10,7 @@ public class TestStarter {
         TestingFactory<AsyncTest> testingFactory = Testing.ASYNCHRONOUS.getFactory();
 
         testingFactory.setMainPackage("org.stonlexx.test");
-        testingFactory.executeTests(new TestStarter() /* Can write an object class or the object */,
+        testingFactory.executeTests(TestStarter.class /* Can write an object class or the object */,
                 null);
     }
 
