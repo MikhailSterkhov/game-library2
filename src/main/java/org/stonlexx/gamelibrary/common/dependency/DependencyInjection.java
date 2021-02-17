@@ -98,7 +98,7 @@ public final class DependencyInjection {
 
                 Constructor<?> emptyConstructor = objectClass.getDeclaredConstructor();
 
-                if (emptyConstructor != null) {
+                if (emptyConstructor.getParameterCount() == 0) {
                     emptyConstructor.setAccessible(true);
 
                     object = emptyConstructor.newInstance();

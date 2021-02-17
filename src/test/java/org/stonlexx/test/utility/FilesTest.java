@@ -26,11 +26,9 @@ public class FilesTest {
     @ThreadTest
     private static void readTest() {
         File currentFile = new File("src\\test\\resources\\test-directory\\test-file.txt");
-
         FileUtil.read(currentFile, handler -> {
 
             try (BufferedReader bufferedReader = new BufferedReader(handler)) {
-
                 while (bufferedReader.ready()) {
                     System.out.println(bufferedReader.readLine());
                 }
